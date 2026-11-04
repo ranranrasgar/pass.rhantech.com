@@ -6,6 +6,7 @@ import { GuestQuery, StoreGuestRequest, UpdateGuestRequest } from "@/Http/Reques
 import { Guest } from "@/Models/Guest";
 import { AuditLog } from "@/Models/AuditLog";
 import { requireActiveEvent } from "@/Services/ActiveEventService";
+import { formatGuestCode } from "@/Services/Import/validateImport";
 import { action, body, idParam, json } from "./Controller";
 
 const MANAGERS = [Role.SUPER_ADMIN, Role.ADMIN];
@@ -27,7 +28,10 @@ export const GuestController = {
     const event = await requireActiveEvent();
     const input = StoreGuestRequest.parse(await body(req));
     const guest = await db.$transaction(async (tx) => {
-      const created = await Guest.create({ ...input, eventId: event.id }, tx);
+      // Kode kosong -> kode berikutnya (0001, 0002, ...) di bawah kunci yang sama dengan impor.
+      await Guest.lockCodes(event.id, tx);
+      const externalCode = input.externalCode ?? formatGuestCode(await Guest.nextCodeNumber(event.id, tx));
+      const created = await Guest.create({ ...input, externalCode, eventId: event.id }, tx);
       await AuditLog.record({ userId: user.id, action: "guest.create", entityType: "guest", entityId: created.id, after: created }, tx);
       return created;
     });

@@ -16,7 +16,7 @@ export function ImportPreview({ preview }: { preview: PreviewData }) {
     ["Valid (akan disimpan)", s.valid, "text-green-700 dark:text-green-400"],
     ["Gagal validasi", s.failed, s.failed ? "text-destructive" : undefined],
     ["Duplikat di file", s.duplicateInFile, s.duplicateInFile ? "text-orange-600" : undefined],
-    ["Kode sudah ada", s.duplicateInDb, s.duplicateInDb ? "text-orange-600" : undefined],
+    ["Sudah ada di event", s.duplicateInDb, s.duplicateInDb ? "text-orange-600" : undefined],
   ];
 
   return (
@@ -29,6 +29,16 @@ export function ImportPreview({ preview }: { preview: PreviewData }) {
           </div>
         ))}
       </dl>
+
+      {s.codeFrom && (
+        <p className="text-sm">
+          <span className="text-muted-foreground">Kode tamu yang akan dibuat: </span>
+          <span className="font-semibold tabular-nums">
+            {s.codeFrom} – {s.codeTo}
+          </span>
+          <span className="text-muted-foreground"> (kolom No di file diabaikan)</span>
+        </p>
+      )}
 
       {Object.keys(s.groups).length > 0 && (
         <p className="text-sm">
@@ -56,7 +66,7 @@ function RowsTable({ title, rows, showReason }: { title: string; rows: ImportRow
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">Baris</TableHead>
-              <TableHead className="w-20">Kode</TableHead>
+              <TableHead className="w-20">Kode baru</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Grup</TableHead>
               {showReason && <TableHead>Alasan</TableHead>}
@@ -66,7 +76,7 @@ function RowsTable({ title, rows, showReason }: { title: string; rows: ImportRow
             {rows.map((r) => (
               <TableRow key={r.rowNumber}>
                 <TableCell className="tabular-nums">{r.rowNumber}</TableCell>
-                <TableCell>{r.externalCode || "—"}</TableCell>
+                <TableCell className="tabular-nums">{r.code || "—"}</TableCell>
                 <TableCell>{r.name || "—"}</TableCell>
                 <TableCell>{r.groupName || "—"}</TableCell>
                 {showReason && (

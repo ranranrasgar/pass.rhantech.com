@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Masuk" };
 export default async function LoginPage() {
   if (await currentUser()) redirect("/dashboard");
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-sidebar p-4">
       <LoginForm />
     </div>
   );

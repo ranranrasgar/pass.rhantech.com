@@ -17,6 +17,8 @@
 | Jumlah tamu | 742 |
 | Grup | BANK CAPITAL (705), CS3 (21), AMP (16) |
 | Pemetaan | `No` → `external_code` (string), `NAMA LENGKAP` → `name`, `GROUP` → `group_name` |
+| File kedua | `docs/DATA BARCODE (Ref) - CAPITAL GROUP.xlsx`: 98 tamu, kolom `No`, `NAMA LENGKAP`, `ENTITAS` (5 entitas Capital) — tidak di-commit |
+| **Keputusan 4 Nov 2026** | Kolom `No` **diabaikan**; `external_code` dibuat sistem 4 digit berurutan per event (file utama 0001–0742, Ref 0743–0840, berikutnya lanjut). `ENTITAS` = grup. Duplikat = nama + grup. QR tetap token acak; kode hanya dicetak sebagai teks. Desain gelang: `docs/WhatsApp Image 2026-11-04 at 8.41.29 AM.jpeg` (tema aplikasi hitam-emas mengikuti gelang). |
 
 ### 1.2 Stack final
 

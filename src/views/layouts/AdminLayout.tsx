@@ -17,7 +17,7 @@ type Props = {
 export function AdminLayout({ user, events, activeEventId, children }: Props) {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      <aside className="border-b bg-muted/30 p-3 md:w-56 md:shrink-0 md:border-r md:border-b-0">
+      <aside className="border-b border-sidebar-border bg-sidebar p-3 text-sidebar-foreground md:w-56 md:shrink-0 md:border-r md:border-b-0">
         <div className="mb-3 flex items-center gap-2 px-1">
           <Image src="/icons/icon-192.png" alt="" width={32} height={32} />
           <span className="font-semibold">VenuePass</span>

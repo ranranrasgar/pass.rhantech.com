@@ -12,8 +12,8 @@ const notes = z.string().trim().max(1000).transform((s) => (s === "" ? null : s)
 export const StoreGuestRequest = z.object({
   name,
   groupName,
-  externalCode: externalCode.optional().default(""),
-  notes: notes.optional().default(""),
+  externalCode: externalCode.optional().prefault(""),
+  notes: notes.optional().prefault(""),
 });
 
 export const UpdateGuestRequest = z

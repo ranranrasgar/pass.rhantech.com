@@ -70,7 +70,7 @@ export function ImportIndex({ eventName, batches }: { eventName: string; batches
         <h1 className="text-2xl font-semibold">Impor Data</h1>
         <p className="text-sm text-muted-foreground">
           Tujuan: <span className="font-medium text-foreground">{eventName}</span> (ganti event di bagian atas). File .xlsx atau .csv, maks. 5 MB.
-          Kolom wajib: No, Nama, Grup.
+          Kolom wajib: Nama dan Grup (ENTITAS juga dikenali sebagai Grup). Kode tamu 0001, 0002, … dibuat otomatis.
         </p>
       </div>
 

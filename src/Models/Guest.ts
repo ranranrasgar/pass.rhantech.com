@@ -1,7 +1,11 @@
 import "server-only";
 import { db } from "@/lib/db";
 import type { GuestStatus, Prisma } from "@/generated/prisma/client";
+import { guestKey } from "@/Services/Import/validateImport";
 import type { DbClient } from "./types";
+
+// Namespace advisory lock PostgreSQL untuk penomoran kode tamu.
+const GUEST_CODE_LOCK = 1001;
 
 export type GuestFilter = {
   eventId: number;
@@ -51,9 +55,26 @@ export const Guest = {
     return rows.map((r) => r.groupName);
   },
 
-  async existingCodes(eventId: number): Promise<Set<string>> {
-    const rows = await db.guest.findMany({ where: { eventId, externalCode: { not: null } }, select: { externalCode: true } });
-    return new Set(rows.map((r) => r.externalCode!));
+  /** guestKey(nama, grup) semua tamu event (termasuk yang dibatalkan). */
+  async existingKeys(eventId: number, client: DbClient = db): Promise<Set<string>> {
+    const rows = await client.guest.findMany({ where: { eventId }, select: { name: true, groupName: true } });
+    return new Set(rows.map((r) => guestKey(r.name, r.groupName)));
+  },
+
+  /**
+   * Nomor kode berikutnya untuk event (kode terbesar yang berupa angka + 1).
+   * Di dalam transaksi, panggil lockCodes() dulu agar dua proses tidak memakai nomor yang sama.
+   */
+  async nextCodeNumber(eventId: number, client: DbClient = db): Promise<number> {
+    const [row] = await client.$queryRaw<{ max: number | null }[]>`
+      SELECT MAX(CASE WHEN external_code ~ '^[0-9]{1,9}$' THEN external_code::int END) AS max
+      FROM guests WHERE event_id = ${eventId}::int`;
+    return (row?.max ?? 0) + 1;
+  },
+
+  /** Kunci penomoran kode per event sampai transaksi selesai. */
+  async lockCodes(eventId: number, client: DbClient) {
+    await client.$executeRaw`SELECT pg_advisory_xact_lock(${GUEST_CODE_LOCK}::int, ${eventId}::int)`;
   },
 
   create(data: Prisma.GuestUncheckedCreateInput, client: DbClient = db) {

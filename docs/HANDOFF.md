@@ -7,9 +7,30 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
 - **Commit terakhir:** `eeaead8` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0 ✅, Fase 1 ✅, Fase 2 ✅ (DoD terverifikasi). Berikutnya: **Fase 3 — QR & Cetak** (butuh konfirmasi ukuran gelang/kartu & printer).
+- **Belum di-commit:** kode tamu otomatis 0001.. + tema hitam-emas (entri teratas Riwayat).
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Kode tamu otomatis 0001.. untuk dua file + tema gelang
+
+**Apa & mengapa** (keputusan pengguna, menyimpang dari PRD A.3/A.4 #5–#6)
+- Ada file kedua `docs/DATA BARCODE (Ref) - CAPITAL GROUP.xlsx` (98 tamu, kolom `ENTITAS`). Kedua file sama-sama mulai No 1, jadi kolom `No` kini **diabaikan** saat impor.
+- `external_code` dibuat sistem: 4 digit berurutan per event (`formatGuestCode`), melanjutkan angka terbesar yang ada. Urutan impor menentukan nomor: file utama 0001–0742, Ref 0743–0840. Tamu manual tanpa kode juga mendapat nomor berikutnya.
+- Penomoran aman paralel: `pg_advisory_xact_lock(1001, event_id)` (`Guest.lockCodes`). Commit impor membaca & memvalidasi ulang **di dalam** transaksi yang terkunci (`ImportService.commitImport`), jadi nomor di pratinjau bisa bergeser bila ada impor lain di antaranya.
+- Duplikat kini = **nama + grup** (tanpa beda huruf besar/kecil & spasi, `guestKey`), termasuk tamu yang dibatalkan. Nama sama dengan grup berbeda dianggap orang lain (ada 1 nama yang muncul di kedua file dengan grup berbeda → keduanya masuk).
+- `ENTITAS` dikenali sebagai Grup. Pratinjau menampilkan rentang kode yang akan dibuat.
+- QR tetap token acak (Fase 3); kode 0001 hanya dicetak sebagai teks di gelang.
+- Bug diperbaiki: di Zod 4, `.default("")` tidak menjalankan `transform`, sehingga tamu manual tanpa field `externalCode` tersimpan dengan kode `""` → diganti `.prefault("")`.
+- Tema aplikasi hitam-emas mengikuti desain gelang (`docs/WhatsApp Image 2026-11-04 at 8.41.29 AM.jpeg`, sengaja di-commit sebagai acuan desain): `--primary` emas, sidebar & login hitam, `theme_color` PWA `#141414`.
+- `.gitignore`: `/docs/*.xlsx` dan `~$*` (file kunci Office). Kedua xlsx sudah dihapus dari riwayat git sebelum ada push.
+
+**File utama:** `src/Services/Import/{validateImport,ImportService}.ts`, `src/Models/Guest.ts`, `src/Http/Controllers/GuestController.ts`, `src/Http/Requests/GuestRequest.ts` (+ test), `src/views/imports/*`, `src/views/guests/GuestFormDialog.tsx`, `src/app/globals.css`, `src/views/layouts/*`.
+
+**Verifikasi**
+- `lint`, `typecheck`, `npm test` (21 test) lulus.
+- Uji HTTP dengan kedua file asli: 840 tamu, kode 0001–0840 unik & berurutan, baris pertama Ref = 0743, grup 705/21/16 + entitas Ref; impor ulang kedua file → 0 baru; tamu manual → 0841; 10 POST paralel → 0842–0851 tanpa kembar. Data uji dihapus.
+- Tema dicek visual hanya di halaman login.
 
 ### 2026-11-04 — `eeaead8` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV
 

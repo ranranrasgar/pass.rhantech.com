@@ -17,7 +17,7 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
             href={item.href}
             className={cn(
               "whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              active ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
             )}
           >
             {item.label}

@@ -59,8 +59,8 @@ export function GuestFormDialog({ open, onOpenChange, guest, groups }: Props) {
               <FieldError messages={fields.groupName} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="g-code">Kode tamu (opsional)</Label>
-              <Input id="g-code" name="externalCode" defaultValue={guest?.externalCode ?? ""} maxLength={100} />
+              <Label htmlFor="g-code">Kode tamu</Label>
+              <Input id="g-code" name="externalCode" defaultValue={guest?.externalCode ?? ""} maxLength={100} placeholder="Kosongkan = otomatis" />
               <FieldError messages={fields.externalCode} />
             </div>
           </div>
