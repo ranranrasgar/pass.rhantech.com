@@ -5,13 +5,13 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** belum ada commit — semua pekerjaan Fase 0 & 1 masih di working tree, menunggu persetujuan pengguna untuk commit.
+- **Commit terakhir:** `dae7289` feat: Fase 0 & 1 — fondasi, auth, pengguna, event, PWA (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0 ✅, Fase 1 ✅ (DoD terverifikasi, lihat di bawah). Berikutnya: **Fase 2 — Gate, Petugas, Tamu & Impor**.
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Fase 0 & Fase 1: fondasi, auth, pengguna, event, PWA
+### 2026-11-04 — `dae7289` feat: Fase 0 & 1 — fondasi, auth, pengguna, event, PWA
 
 **Apa & mengapa**
 - Scaffold Next.js 16.4 (App Router, Turbopack, TS, Tailwind 4, ESLint) + shadcn/ui (style `base-nova`, berbasis Base UI — bukan Radix; komponen memakai prop `render`, bukan `asChild`) + Vitest 5.
@@ -36,7 +36,7 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 - Data uji sudah dihapus; DB hanya berisi Super Admin dari seed.
 
 **Belum dilakukan / perlu tindakan manual**
-- Belum di-commit / push.
+- Belum di-push (repo belum punya remote).
 - UI belum dicek visual setelah login oleh manusia (agent hanya memeriksa HTML hasil render) — cek tampilan Event & Pengguna di browser.
 - Uji install PWA di ponsel butuh HTTPS (rencana F4: mkcert/SSL Laragon).
 - Rate limit login → F6.
