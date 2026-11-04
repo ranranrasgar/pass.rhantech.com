@@ -5,14 +5,13 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `eeaead8` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `0e92d68` feat: kode tamu otomatis 0001.. per event + tema hitam-emas gelang (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0 ✅, Fase 1 ✅, Fase 2 ✅ (DoD terverifikasi). Berikutnya: **Fase 3 — QR & Cetak** (butuh konfirmasi ukuran gelang/kartu & printer).
-- **Belum di-commit:** kode tamu otomatis 0001.. + tema hitam-emas (entri teratas Riwayat).
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Kode tamu otomatis 0001.. untuk dua file + tema gelang
+### 2026-11-04 — `0e92d68` feat: kode tamu otomatis 0001.. per event + tema hitam-emas gelang
 
 **Apa & mengapa** (keputusan pengguna, menyimpang dari PRD A.3/A.4 #5–#6)
 - Ada file kedua `docs/DATA BARCODE (Ref) - CAPITAL GROUP.xlsx` (98 tamu, kolom `ENTITAS`). Kedua file sama-sama mulai No 1, jadi kolom `No` kini **diabaikan** saat impor.
