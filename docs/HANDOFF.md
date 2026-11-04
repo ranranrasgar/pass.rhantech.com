@@ -5,16 +5,15 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `94062a8` feat: Fase 5 — laporan kehadiran, koreksi check-in, audit log (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `c367f9a` feat: Fase 6 — hardening & kesiapan hari acara (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–6 ✅ secara perangkat lunak. Sisa: **uji fisik** oleh penyelenggara (cetak gelang asli, scan di ponsel via HTTPS & scanner USB, jaringan venue) — checklist di `docs/SOP_HARI_ACARA.md` §1.
-- **Belum di-commit:** pekerjaan Fase 6 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** ukuran fisik gelang & printer (preset 250 × 20 mm masih asumsi), jumlah gate & laju kedatangan puncak (untuk simulasi beban F6), jaringan venue.
 - **Keputusan sudah diambil (F5):** koreksi = batalkan check-in (hapus baris + audit); Pengaturan = Audit Log saja.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Fase 6: Hardening & Kesiapan Hari Acara
+### 2026-11-04 — `c367f9a` feat: Fase 6 — hardening & kesiapan hari acara
 
 **Apa & mengapa**
 - **Rate limit login** (`src/lib/rateLimit.ts`, in-memory per proses): 5 gagal / 15 menit per `email|x-forwarded-for`; login berhasil me-reset. Saat terblokir `authorize` melempar `TooManyAttempts` (`code = "rate_limited"`) → pesan "Terlalu banyak percobaan gagal…". Di LAN tanpa proxy praktis per email (risiko kecil akun dikunci orang lain 15 menit). Multi-instance → pindahkan ke DB/Redis.
