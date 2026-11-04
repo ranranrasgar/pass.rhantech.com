@@ -5,15 +5,14 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `0e92d68` feat: kode tamu otomatis 0001.. per event + tema hitam-emas gelang (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `665b9b5` feat: Fase 3 — QR & cetak gelang/kartu PDF (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–3 ✅ (Fase 3 tinggal uji fisik cetak & scan). Berikutnya: **Fase 4 — Scan Gate & Check-in**.
-- **Belum di-commit:** pekerjaan Fase 3 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event `Event-Bandung` id 1, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Fase 3: QR & Cetak
+### 2026-11-04 — `665b9b5` feat: Fase 3 — QR & cetak gelang/kartu PDF
 
 **Apa & mengapa**
 - `src/lib/qr.ts`: token `VP1_` + 32 byte acak base64url; DB menyimpan `token_hash` (sha256, unik), `token_last4`, dan `token_encrypted` (AES-256-GCM, kunci `QR_ENC_KEY`, format iv|tag|data base64) khusus untuk cetak ulang. Token mentah hanya ada di PDF; tidak ada di respons API, log, atau ekspor.
