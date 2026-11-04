@@ -5,13 +5,13 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `f959f16` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `eeaead8` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0 ✅, Fase 1 ✅, Fase 2 ✅ (DoD terverifikasi). Berikutnya: **Fase 3 — QR & Cetak** (butuh konfirmasi ukuran gelang/kartu & printer).
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — `f959f16` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV
+### 2026-11-04 — `eeaead8` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV
 
 **Apa & mengapa**
 - Semua fitur Fase 2 bekerja pada **event aktif** di header (cookie `vp_event`); tidak ada `eventId` dari body. `requireActiveEvent()` (409 bila belum ada event) di `Services/ActiveEventService.ts`.
