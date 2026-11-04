@@ -5,15 +5,14 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `3092dd6` feat: cetak gelang memakai desain asli (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `0775a87` feat: Fase 4 — scan gate & check-in atomik (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–4 ✅ (tinggal uji fisik: cetak gelang, scan kamera ponsel/scanner USB via HTTPS). Berikutnya: **Fase 5 — Laporan, Koreksi, Pengaturan** (butuh keputusan §1.3 #9 & opsi koreksi check-in).
-- **Belum di-commit:** pekerjaan Fase 4 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Fase 4: Scan Gate & Check-in
+### 2026-11-04 — `0775a87` feat: Fase 4 — scan gate & check-in atomik
 
 **Apa & mengapa**
 - `POST /api/check-in/scan {token, gateId}` (`CheckInController` → `Services/CheckInService.scan`). Petugas dari sesi; **event ditentukan dari gate**, bukan dari body. Urutan: hash token → `UNKNOWN_QR` → `WRONG_EVENT` → `INACTIVE` (QR dicabut / tamu dibatalkan) → insert `check_ins`; unique `(guest_id, event_id)` + tangkap P2002 → `ALREADY_CHECKED_IN` dengan gate & waktu check-in pertama. Galat tak terduga → `ERROR` (tidak pernah sukses).
