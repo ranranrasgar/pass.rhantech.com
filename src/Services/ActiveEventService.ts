@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
+import { HttpError } from "@/Http/Middleware/Authenticate";
 
 export const ACTIVE_EVENT_COOKIE = "vp_event";
 
@@ -15,6 +16,13 @@ export async function getActiveEvent() {
     (await db.event.findFirst({ where: { status: "ACTIVE" }, orderBy: { eventDate: "desc" } })) ??
     (await db.event.findFirst({ orderBy: { eventDate: "desc" } }))
   );
+}
+
+/** Untuk controller yang bekerja pada event aktif: 409 jika belum ada event. */
+export async function requireActiveEvent() {
+  const event = await getActiveEvent();
+  if (!event) throw new HttpError(409, "Belum ada event. Buat event terlebih dahulu.");
+  return event;
 }
 
 export async function setActiveEvent(eventId: number) {

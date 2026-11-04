@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   await requirePageUser();
-  const { activeEvent, eventsByStatus, usersByRole } = await dashboardSummary();
+  const { activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests } = await dashboardSummary();
   return (
     <DashboardView
       activeEvent={
@@ -21,6 +21,8 @@ export default async function DashboardPage() {
       }
       eventsByStatus={eventsByStatus}
       usersByRole={usersByRole}
+      guestsByGroup={guestsByGroup}
+      cancelledGuests={cancelledGuests}
     />
   );
 }

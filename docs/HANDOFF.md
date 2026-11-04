@@ -5,11 +5,34 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `dae7289` feat: Fase 0 & 1 — fondasi, auth, pengguna, event, PWA (+ commit docs ini). Belum di-push (belum ada remote).
-- **Fase:** Fase 0 ✅, Fase 1 ✅ (DoD terverifikasi, lihat di bawah). Berikutnya: **Fase 2 — Gate, Petugas, Tamu & Impor**.
+- **Commit terakhir:** `f959f16` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV (+ commit docs ini). Belum di-push (belum ada remote).
+- **Fase:** Fase 0 ✅, Fase 1 ✅, Fase 2 ✅ (DoD terverifikasi). Berikutnya: **Fase 3 — QR & Cetak** (butuh konfirmasi ukuran gelang/kartu & printer).
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — `f959f16` feat: Fase 2 — gate & petugas, data tamu, impor XLSX/CSV
+
+**Apa & mengapa**
+- Semua fitur Fase 2 bekerja pada **event aktif** di header (cookie `vp_event`); tidak ada `eventId` dari body. `requireActiveEvent()` (409 bila belum ada event) di `Services/ActiveEventService.ts`.
+- **Gate & Petugas** (`/gates`): tambah, ubah nama, aktif/nonaktif; nama unik per event (409). Penugasan `PUT /api/gates/:id/officers {userIds}` mengganti seluruh daftar; hanya user aktif ber-role `GATE_OFFICER` (422 selain itu). Satu petugas boleh di beberapa gate.
+- **Data Tamu** (`/guests`): filter di URL (`q`, `group`, `status`, `page`), paginasi server 50/halaman, urut `created_at, id` (urutan impor). Tambah/ubah manual (kode tamu opsional; unik per event → 409), batalkan/aktifkan lagi (`status`), audit `guest.create|update|cancel`.
+- **Impor** (`/import`): stateless — file dikirim ulang saat commit, server membaca & memvalidasi ulang (tidak ada file sementara). `exceljs` untuk XLSX, `papaparse` untuk CSV (BOM, pemisah `,`/`;` auto). Batas 5 MB; isi dicek (XLSX harus ZIP, CSV tanpa byte NUL). Sheet default = sheet pertama yang berisi data; header = baris tidak kosong pertama; auto-map `No`/`NAMA LENGKAP`/`GROUP` (+ sinonim) dan bisa dipetakan manual.
+- Aturan baris (PRD A.4): No, Nama, Grup **wajib**; spasi dirapikan; kode duplikat di file → `duplicate_file`, kode sudah ada di event → `duplicate_db`. Tidak ada mode pembaruan — duplikat hanya dilewati (impor ulang tidak membuat tamu ganda).
+- Commit: satu transaksi `import_batches` + `createMany(skipDuplicates)` + audit `import.commit`; `failed_rows = total - tersimpan` (gagal + duplikat). Commit tanpa baris valid → 422.
+- Dashboard: tamu aktif per grup + jumlah dibatalkan untuk event aktif.
+- Menu baru di `config/nav.ts`: Gate & Petugas, Data Tamu, Impor Data (Super Admin, Admin).
+
+**File/folder utama:** `src/Services/Import/{readSpreadsheet,validateImport,ImportService}.ts` (+ `import.test.ts`), `src/Models/{Gate,Guest,ImportBatch}.ts`, `src/Http/Controllers/{Gate,Guest,Import}Controller.ts`, `src/Http/Requests/{Gate,Guest}Request.ts`, `src/app/api/{gates,guests,imports}/**`, `src/app/(admin)/{gates,guests,import}/page.tsx`, `src/views/{gates,guests,imports}/**`, `src/views/components/NoActiveEvent.tsx`, `src/lib/api.ts` (`apiUpload`).
+
+**Verifikasi**
+- `lint`, `typecheck`, `npm test` (18 test, termasuk 7 test impor) lulus.
+- Uji HTTP dengan `DATA BARCODE.xlsx` asli: **TC-01** 742 tamu, BANK CAPITAL 705 / CS3 21 / AMP 16; **TC-03** impor ulang → 0 valid, 742 duplikat, commit ditolak, total tetap 742; **TC-02** CSV nama kosong → gagal "Nama kosong" baris 2. Juga: pratinjau tidak menyimpan, isi file palsu ditolak, gate/penugasan/tamu manual/paginasi/filter, Viewer 403 di semua API Fase 2 — 44 cek lulus.
+- Data uji dihapus; DB kembali hanya berisi Super Admin.
+
+**Belum dilakukan / perlu tindakan manual**
+- Interaksi UI di browser (unggah file, dialog) belum dicek manusia — agent hanya memeriksa HTML hasil render; coba impor `DATA BARCODE.xlsx` lewat menu Impor Data.
+- `npm install` diperlukan di mesin lain (dependensi baru: `exceljs`, `papaparse`).
 
 ### 2026-11-04 — `dae7289` feat: Fase 0 & 1 — fondasi, auth, pengguna, event, PWA
 

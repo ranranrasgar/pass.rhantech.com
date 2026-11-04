@@ -1,5 +1,6 @@
 import "server-only";
 import { Event } from "@/Models/Event";
+import { Guest } from "@/Models/Guest";
 import { User } from "@/Models/User";
 import { getActiveEvent } from "./ActiveEventService";
 
@@ -9,5 +10,8 @@ export async function dashboardSummary() {
     Event.countByStatus(),
     User.countByRole(),
   ]);
-  return { activeEvent, eventsByStatus, usersByRole };
+  const [guestsByGroup, cancelledGuests] = activeEvent
+    ? await Promise.all([Guest.countByGroup(activeEvent.id), Guest.countCancelled(activeEvent.id)])
+    : [[], 0];
+  return { activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests };
 }

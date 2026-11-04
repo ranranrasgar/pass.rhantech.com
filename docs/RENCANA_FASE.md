@@ -140,17 +140,17 @@ Catatan koreksi check-in: jika check-in di-*void*, unique `(guest_id, event_id)`
 
 **Menu baru:** Gate & Petugas, Data Tamu, Impor Data.
 
-- [ ] Gate: CRUD per event, nama unik per event, aktif/nonaktif.
-- [ ] Penugasan petugas ke gate (`gate_assignments`), multi-gate.
-- [ ] Data Tamu: tabel dengan pencarian, filter grup/status, paginasi server; tambah/ubah manual; batalkan (`CANCELLED`).
-- [ ] Impor:
-  - [ ] Upload XLSX/CSV (batas ukuran, cek MIME + isi).
-  - [ ] Pilih sheet (default sheet pertama yang berisi data), deteksi header otomatis.
-  - [ ] Pemetaan kolom (auto-map `No`/`NAMA LENGKAP`/`GROUP`).
-  - [ ] Pratinjau + ringkasan: total, valid, gagal (nomor baris + alasan), duplikat kode di file & di DB.
-  - [ ] Commit hanya baris valid dalam satu transaksi; simpan `import_batches`.
-  - [ ] Riwayat impor (tabel di halaman Impor).
-- [ ] Dashboard: total tamu per grup.
+- [x] Gate: CRUD per event, nama unik per event, aktif/nonaktif.
+- [x] Penugasan petugas ke gate (`gate_assignments`), multi-gate.
+- [x] Data Tamu: tabel dengan pencarian, filter grup/status, paginasi server; tambah/ubah manual; batalkan (`CANCELLED`).
+- [x] Impor:
+  - [x] Upload XLSX/CSV (batas ukuran, cek MIME + isi).
+  - [x] Pilih sheet (default sheet pertama yang berisi data), deteksi header otomatis.
+  - [x] Pemetaan kolom (auto-map `No`/`NAMA LENGKAP`/`GROUP`).
+  - [x] Pratinjau + ringkasan: total, valid, gagal (nomor baris + alasan), duplikat kode di file & di DB.
+  - [x] Commit hanya baris valid dalam satu transaksi; simpan `import_batches`.
+  - [x] Riwayat impor (tabel di halaman Impor).
+- [x] Dashboard: total tamu per grup.
 
 **DoD / verifikasi:**
 - Impor `DATA BARCODE.xlsx` → **742 tamu**, BANK CAPITAL 705 / CS3 21 / AMP 16 (TC-01).

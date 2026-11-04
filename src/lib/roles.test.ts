@@ -26,12 +26,12 @@ describe("guard role", () => {
 describe("menu per role", () => {
   const hrefs = (role: Role) => navFor(role).map((i) => i.href);
 
-  it("Super Admin melihat semua menu Fase 1", () => {
-    expect(hrefs(Role.SUPER_ADMIN)).toEqual(["/dashboard", "/events", "/users"]);
+  it("Super Admin melihat semua menu Fase 1–2", () => {
+    expect(hrefs(Role.SUPER_ADMIN)).toEqual(["/dashboard", "/events", "/gates", "/guests", "/import", "/users"]);
   });
 
   it("Admin tidak melihat Pengguna", () => {
-    expect(hrefs(Role.ADMIN)).toEqual(["/dashboard", "/events"]);
+    expect(hrefs(Role.ADMIN)).toEqual(["/dashboard", "/events", "/gates", "/guests", "/import"]);
   });
 
   it("Viewer & Petugas hanya Dashboard", () => {

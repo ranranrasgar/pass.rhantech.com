@@ -7,9 +7,12 @@ type Props = {
   activeEvent: { name: string; venueName: string; dateLabel: string; status: EventStatus } | null;
   eventsByStatus: Record<EventStatus, number>;
   usersByRole: Record<Role, number>;
+  guestsByGroup: { group: string; count: number }[];
+  cancelledGuests: number;
 };
 
-export function DashboardView({ activeEvent, eventsByStatus, usersByRole }: Props) {
+export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests }: Props) {
+  const totalGuests = guestsByGroup.reduce((sum, g) => sum + g.count, 0);
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -34,6 +37,13 @@ export function DashboardView({ activeEvent, eventsByStatus, usersByRole }: Prop
           )}
         </CardContent>
       </Card>
+
+      {activeEvent && (
+        <StatCard
+          title={`Tamu aktif per grup — total ${totalGuests.toLocaleString("id-ID")}${cancelledGuests ? ` (${cancelledGuests} dibatalkan)` : ""}`}
+          rows={guestsByGroup.length ? guestsByGroup.map((g) => [g.group, g.count]) : [["Belum ada tamu", 0]]}
+        />
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <StatCard title="Event per status" rows={Object.entries(eventsByStatus).map(([k, v]) => [EVENT_STATUS_LABELS[k as EventStatus], v])} />

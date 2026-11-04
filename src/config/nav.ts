@@ -6,6 +6,9 @@ export type NavItem = { label: string; href: string; roles?: readonly Role[] };
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Event", href: "/events", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
+  { label: "Gate & Petugas", href: "/gates", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
+  { label: "Data Tamu", href: "/guests", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
+  { label: "Impor Data", href: "/import", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "Pengguna", href: "/users", roles: [Role.SUPER_ADMIN] },
 ];
 
