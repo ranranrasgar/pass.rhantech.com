@@ -7,7 +7,7 @@ export default async function Layout({ children }: LayoutProps<"/">) {
   const user = await requirePageUser();
   const [events, active] = await Promise.all([Event.all(), getActiveEvent()]);
   return (
-    <AdminLayout user={user} events={events.map((e) => ({ id: e.id, name: e.name }))} activeEventId={active?.id ?? null}>
+    <AdminLayout user={user} events={events.map((e) => ({ id: e.id, name: e.name }))} activeEventId={active?.id ?? null} testModeEvent={active?.testMode ? active.name : null}>
       {children}
     </AdminLayout>
   );

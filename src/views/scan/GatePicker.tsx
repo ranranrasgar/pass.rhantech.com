@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { logout } from "@/Http/Controllers/AuthController";
 
-type GateOption = { id: number; name: string; eventName: string };
+type GateOption = { id: number; name: string; eventName: string; testMode: boolean };
 
 /** Petugas memilih gate tempat bertugas (hanya gate yang ditugaskan & aktif). */
 export function GatePicker({ gates, officerName, canLeave }: { gates: GateOption[]; officerName: string; canLeave: boolean }) {
@@ -23,7 +23,10 @@ export function GatePicker({ gates, officerName, canLeave }: { gates: GateOption
               <li key={g.id}>
                 <Link href={`/scan?gate=${g.id}`} className="block rounded-2xl bg-neutral-900 p-5 hover:bg-neutral-800">
                   <div className="text-2xl font-black">{g.name}</div>
-                  <div className="text-neutral-300">{g.eventName}</div>
+                  <div className="text-neutral-300">
+                    {g.eventName}
+                    {g.testMode && <span className="ml-2 rounded bg-amber-400 px-1.5 py-0.5 text-xs font-bold text-black">MODE UJI</span>}
+                  </div>
                 </Link>
               </li>
             ))}

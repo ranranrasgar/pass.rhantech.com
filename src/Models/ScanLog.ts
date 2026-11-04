@@ -15,7 +15,7 @@ export type ScanLogFilter = {
 
 export const ScanLog = {
   /** Token mentah TIDAK PERNAH disimpan; hanya sidik jari (awal sha256). */
-  record(data: { eventId: number; gateId: number | null; userId: number | null; tokenFingerprint: string | null; result: ScanResult; message: string }) {
+  record(data: { eventId: number; gateId: number | null; userId: number | null; tokenFingerprint: string | null; result: ScanResult; message: string; isTest?: boolean }) {
     return db.scanLog.create({ data: { ...data, message: data.message.slice(0, 255) } });
   },
 

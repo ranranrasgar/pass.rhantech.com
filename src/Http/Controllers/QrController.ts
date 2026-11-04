@@ -7,7 +7,7 @@ import { requireUser } from "@/Http/Middleware/Authenticate";
 import { IssueQrRequest, RevokeQrRequest } from "@/Http/Requests/PrintRequest";
 import { QrCredential } from "@/Models/QrCredential";
 import { requireActiveEvent } from "@/Services/ActiveEventService";
-import { generateMissing, issueForGuest, revokeForGuest } from "@/Services/QrService";
+import { generateMissing, issueForGuest, reissueAll, revokeForGuest } from "@/Services/QrService";
 import { action, body, idParam, json } from "./Controller";
 
 const MANAGERS = [Role.SUPER_ADMIN, Role.ADMIN];
@@ -25,6 +25,14 @@ export const QrController = {
     const user = await requireUser(MANAGERS);
     const event = await requireActiveEvent();
     return json({ data: await generateMissing(event.id, user.id) }, 201);
+  }),
+
+  // POST /api/qr/reissue-all  { reason }  — QR baru untuk semua tamu aktif (gelang lama tidak berlaku)
+  reissueAll: action(async (req) => {
+    const user = await requireUser(MANAGERS);
+    const event = await requireActiveEvent();
+    const { reason } = RevokeQrRequest.parse(await body(req));
+    return json({ data: await reissueAll(event.id, user.id, reason) }, 201);
   }),
 
   // POST /api/guests/:id/issue-qr  { reason? }  — terbitkan / terbitkan ulang

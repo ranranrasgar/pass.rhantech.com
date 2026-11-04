@@ -57,3 +57,8 @@ next-env.d.ts
 
 # backup database (berisi data tamu)
 /backups/
+
+# deployment
+/deploy-dist/
+deploy.tar.gz
+

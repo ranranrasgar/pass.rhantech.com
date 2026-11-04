@@ -8,10 +8,25 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 - **Commit terakhir:** `c367f9a` feat: Fase 6 — hardening & kesiapan hari acara (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–6 ✅ secara perangkat lunak. Sisa: **uji fisik** oleh penyelenggara (cetak gelang asli, scan di ponsel via HTTPS & scanner USB, jaringan venue) — checklist di `docs/SOP_HARI_ACARA.md` §1.
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
+- **Belum di-commit:** menu mobile + QR gelang diperbesar (entri teratas Riwayat).
+- **Tindakan pengguna:** 840 QR di event BankCapital masih format lama VP1 (padat). Klik **QR & Cetak → Terbitkan ulang semua QR** lalu cetak ulang agar QR besar.
 - **Keputusan terbuka:** ukuran fisik gelang & printer (preset 250 × 20 mm masih asumsi), jumlah gate & laju kedatangan puncak (untuk simulasi beban F6), jaringan venue.
 - **Keputusan sudah diambil (F5):** koreksi = batalkan check-in (hapus baris + audit); Pengaturan = Audit Log saja.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Menu mobile + QR gelang lebih besar (format token VP2)
+
+**Apa & mengapa** (laporan pengguna: tampilan mobile jelek; QR gelang tidak terbaca ponsel, ingin 50 cm–1 m)
+- **Mobile** (`views/layouts/MobileNav.tsx`): di bawah `md` sidebar disembunyikan, diganti bar atas (logo + tombol ☰ Menu) yang membuka daftar menu vertikal + nama/role + Keluar; menutup otomatis saat pindah halaman. Header: pemilih event selebar layar, blok user hanya di desktop. Dicek di 375 px.
+- **Token QR format VP2** (`lib/qr.ts`): `"VP2-"` + 16 byte acak (128 bit) base32 huruf besar = 30 karakter → mode **alfanumerik**, QR **versi 2 (25×25)** pada EC M (sebelumnya VP1 = 32 byte base64url → versi 4, 33×33). Token VP1 lama tetap sah (lookup via hash). `normalizeToken` meng-uppercase token VP2 (scanner Caps Lock). Menyimpang dari rencana awal (32 byte) — 128 bit tetap tidak bisa ditebak.
+- **Badge QR gelang** (`renderPdf.ts`, tema DARK/template): badge putih membulat diperbesar dari 77 px → 118 px dari tinggi 128 px gambar (≈ 18,4 mm pada gelang 20 mm), tepi kanan tetap menempel label emas; quiet zone **2 modul** (di bawah standar 4 — atas permintaan pengguna "pinggir tipis"; badge putih di atas latar gelap). Modul: **0,28 mm → 0,64 mm**.
+- **Terbitkan ulang semua QR** (`POST /api/qr/reissue-all {reason}`, `QrService.reissueAll`, tombol di QR & Cetak): cabut semua QR aktif event + buat baru untuk tamu ACTIVE, wajib alasan + konfirmasi, audit `qr.reissue_all`. Dipakai untuk pindah ke format VP2.
+- **Batas fisik**: jarak baca kamera ≈ 10× lebar QR → QR 18 mm realistis ±15–25 cm dengan kamera ponsel; 50 cm–1 m butuh QR ±5–10 cm (gelang lebih lebar/tag terpisah) atau scanner 2D (handheld) yang jauh lebih sensitif. Disampaikan ke pengguna.
+
+**File utama:** `src/lib/qr.ts` (+ test), `src/Services/CheckInService.ts`, `src/Services/Print/renderPdf.ts`, `src/Services/QrService.ts`, `src/Http/Controllers/QrController.ts`, `src/app/api/qr/reissue-all/route.ts`, `src/views/print/QrSummaryCard.tsx`, `src/views/layouts/{AdminLayout,MobileNav,SidebarNav,EventPicker}.tsx`.
+
+**Verifikasi:** `lint`, `typecheck`, `npm test` (41), `npm run test:int` (10) lulus; uji HTTP event uji (dihapus): token VP2, reissue-all 3/3, QR lama INACTIVE, QR baru & huruf kecil SUCCESS, audit — 9/9. Contoh PDF dicek visual. E2E belum diulang (perlu `npm run build`).
 
 ### 2026-11-04 — `c367f9a` feat: Fase 6 — hardening & kesiapan hari acara
 

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export function SidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
-    <nav className="flex gap-1 overflow-x-auto md:flex-col">
+    <nav className="flex flex-col gap-1">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(item.href + "/");
         return (

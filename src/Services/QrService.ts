@@ -33,6 +33,35 @@ export async function generateMissing(eventId: number, userId: number) {
   );
 }
 
+/**
+ * Terbitkan ulang QR SEMUA tamu ACTIVE di event (mis. ganti ke format token baru / PDF bocor).
+ * Semua QR aktif lama dicabut -> gelang lama tidak berlaku lagi.
+ */
+export async function reissueAll(eventId: number, userId: number, reason: string) {
+  return db.$transaction(
+    async (tx) => {
+      await QrCredential.lock(eventId, tx);
+      const revoked = await tx.qrCredential.updateMany({
+        where: { isActive: true, guest: { eventId } },
+        data: { isActive: false, revokedAt: new Date() },
+      });
+      const guests = await tx.guest.findMany({ where: { eventId, status: "ACTIVE" }, select: { id: true } });
+      await tx.qrCredential.createMany({
+        data: guests.map((g) => {
+          const t = issueToken();
+          return { guestId: g.id, tokenHash: t.tokenHash, tokenLast4: t.tokenLast4, tokenEncrypted: t.tokenEncrypted };
+        }),
+      });
+      await AuditLog.record(
+        { userId, action: "qr.reissue_all", entityType: "event", entityId: eventId, after: { revoked: revoked.count, created: guests.length }, reason },
+        tx,
+      );
+      return { revoked: revoked.count, created: guests.length };
+    },
+    { timeout: 60_000 },
+  );
+}
+
 async function findGuest(guestId: number, client: DbClient) {
   const guest = await client.guest.findUnique({ where: { id: guestId } });
   if (!guest) throw new HttpError(404, "Tamu tidak ditemukan");

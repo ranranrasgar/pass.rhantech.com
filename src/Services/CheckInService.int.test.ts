@@ -86,6 +86,18 @@ describe("scan check-in", () => {
     expect(await db.checkIn.count({ where: { guest: { externalCode: "0020" } } })).toBe(1);
   });
 
+  it("Mode Uji: check-in & scan_log ditandai is_test", async () => {
+    await guestWithQr(gateA.eventId, "0030");
+    const r = await scan(tokens["0030"], { ...gateA, testMode: true }, officer.id);
+    expect(r.result).toBe("SUCCESS");
+    const ci = await db.checkIn.findFirstOrThrow({ where: { guest: { externalCode: "0030" } } });
+    expect(ci.isTest).toBe(true);
+    expect(await db.scanLog.count({ where: { isTest: true } })).toBe(1);
+    // bersihkan agar hitungan tes berikut tetap sama
+    await db.checkIn.delete({ where: { id: ci.id } });
+    await db.scanLog.deleteMany({ where: { isTest: true } });
+  });
+
   it("scan_logs mencatat setiap scan tanpa token mentah", async () => {
     const logs = await db.scanLog.findMany();
     expect(logs.length).toBe(1 + 1 + 2 + 1 + 2 + 1 + 20);

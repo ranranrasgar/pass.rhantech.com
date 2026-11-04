@@ -18,7 +18,7 @@ export function EventPicker({ events, activeId }: { events: Option[]; activeId: 
   return (
     <NativeSelect
       aria-label="Event aktif"
-      className="w-auto max-w-64"
+      className="w-full min-w-0 md:w-auto md:max-w-64"
       value={activeId ?? ""}
       disabled={pending}
       onChange={(e) => {

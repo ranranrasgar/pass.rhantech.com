@@ -80,6 +80,8 @@ model Event {
   venueName String      @map("venue_name") @db.VarChar(191)
   eventDate DateTime    @map("event_date")
   status    EventStatus @default(DRAFT)
+  // Mode Uji: check-in & scan_log yang dibuat ditandai is_test dan dihapus saat mode uji diakhiri.
+  testMode  Boolean     @default(false) @map("test_mode")
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
 
@@ -169,6 +171,7 @@ model CheckIn {
   gateId      Int      @map("gate_id")
   userId      Int      @map("user_id")
   checkedInAt DateTime @default(now()) @map("checked_in_at")
+  isTest      Boolean  @default(false) @map("is_test")
 
   guest Guest @relation(fields: [guestId], references: [id])
   event Event @relation(fields: [eventId], references: [id])
@@ -192,6 +195,7 @@ model ScanLog {
   result           ScanResult
   message          String     @db.VarChar(255)
   scannedAt        DateTime   @default(now()) @map("scanned_at")
+  isTest           Boolean    @default(false) @map("is_test")
 
   event Event @relation(fields: [eventId], references: [id])
   gate  Gate? @relation(fields: [gateId], references: [id])

@@ -26,6 +26,7 @@ export function AuditLogIndex({ rows, total, page, perPage, filters, users, acti
   const pages = Math.max(1, Math.ceil(total / perPage));
   const href = (p: number) => {
     const q = new URLSearchParams(Object.entries(filters).filter(([, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)]));
+    q.set("tab", "audit");
     if (p > 1) q.set("page", String(p));
     return q.size ? `${pathname}?${q}` : pathname;
   };
@@ -33,7 +34,7 @@ export function AuditLogIndex({ rows, total, page, perPage, filters, users, acti
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold">Pengaturan · Audit Log</h1>
+        <h2 className="text-lg font-semibold">Audit Log</h2>
         <p className="text-sm text-muted-foreground">Semua aktivitas administratif (semua event). {total.toLocaleString("id-ID")} catatan.</p>
       </div>
 
@@ -42,7 +43,7 @@ export function AuditLogIndex({ rows, total, page, perPage, filters, users, acti
         className="flex flex-wrap items-end gap-2"
         onSubmit={(e) => {
           e.preventDefault();
-          const q = new URLSearchParams();
+          const q = new URLSearchParams({ tab: "audit" });
           for (const [k, v] of new FormData(e.currentTarget)) if (String(v)) q.set(k, String(v));
           router.push(q.size ? `${pathname}?${q}` : pathname);
         }}

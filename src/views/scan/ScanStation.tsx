@@ -10,7 +10,7 @@ import { ResultCard, type ScanOutcome } from "./ResultCard";
 import { playScanSound } from "./scanSound";
 
 type Props = {
-  gate: { id: number; name: string; eventName: string };
+  gate: { id: number; name: string; eventName: string; testMode: boolean };
   officerName: string;
   canLeave: boolean; // admin: kembali ke dashboard
 };
@@ -120,6 +120,11 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
         </div>
       </header>
 
+      {gate.testMode && (
+        <div className="bg-amber-400 px-4 py-2 text-center text-base font-black text-black">
+          MODE UJI — check-in ini hanya uji & akan dihapus sebelum acara
+        </div>
+      )}
       <div
         role="status"
         className={`px-4 py-1.5 text-center text-sm font-bold ${online ? "bg-green-900 text-green-100" : "bg-red-600 text-white"}`}

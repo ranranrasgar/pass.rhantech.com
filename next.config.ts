@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // pdfkit membaca file font (AFM) lewat __dirname; jangan di-bundle.
   serverExternalPackages: ["pdfkit"],
   poweredByHeader: false,

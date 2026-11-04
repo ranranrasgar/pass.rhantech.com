@@ -4,12 +4,13 @@ import "server-only";
 // - scan_log ditulis SETELAH hasil diketahui, di luar insert check-in.
 // - Token mentah tidak pernah disimpan, dicatat, atau dikembalikan.
 import { db } from "@/lib/db";
-import { hashToken } from "@/lib/qr";
+import { hashToken, normalizeToken } from "@/lib/qr";
 import { APP_TIMEZONE } from "@/lib/time";
 import { Prisma, type ScanResult } from "@/generated/prisma/client";
 import { ScanLog } from "@/Models/ScanLog";
 
-export type ScanGate = { id: number; name: string; eventId: number };
+// testMode: event sedang Mode Uji -> check-in & scan_log ditandai is_test (dihapus saat mode uji diakhiri).
+export type ScanGate = { id: number; name: string; eventId: number; testMode?: boolean };
 
 export type ScanResponse = {
   ok: boolean;
@@ -25,10 +26,10 @@ const timeLabel = (d: Date) =>
 const stamp = (gate: string, d: Date) => ({ gate, checkedInAt: d.toISOString(), time: timeLabel(d) });
 
 export async function scan(rawToken: string, gate: ScanGate, userId: number): Promise<ScanResponse> {
-  const token = rawToken.trim();
+  const token = normalizeToken(rawToken);
   const tokenHash = hashToken(token);
   const log = (result: ScanResult, message: string) =>
-    ScanLog.record({ eventId: gate.eventId, gateId: gate.id, userId, tokenFingerprint: tokenHash.slice(0, 16), result, message });
+    ScanLog.record({ eventId: gate.eventId, gateId: gate.id, userId, tokenFingerprint: tokenHash.slice(0, 16), result, message, isTest: !!gate.testMode });
 
   try {
     const cred = await db.qrCredential.findUnique({
@@ -53,7 +54,7 @@ export async function scan(rawToken: string, gate: ScanGate, userId: number): Pr
 
     try {
       const created = await db.checkIn.create({
-        data: { guestId: g.id, eventId: gate.eventId, gateId: gate.id, userId },
+        data: { guestId: g.id, eventId: gate.eventId, gateId: gate.id, userId, isTest: !!gate.testMode },
         select: { checkedInAt: true },
       });
       await log("SUCCESS", `Check-in tamu ${g.id}`);

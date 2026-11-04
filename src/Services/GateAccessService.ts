@@ -15,13 +15,13 @@ export function usableGates(user: UserRow) {
       event: { status: "ACTIVE" },
       assignments: ANY_GATE.includes(user.role) ? undefined : { some: { userId: user.id } },
     },
-    include: { event: { select: { id: true, name: true } } },
+    include: { event: { select: { id: true, name: true, testMode: true } } },
     orderBy: [{ event: { name: "asc" } }, { name: "asc" }],
   });
 }
 
 export type GateAccess =
-  | { ok: true; gate: { id: number; name: string; eventId: number; eventName: string } }
+  | { ok: true; gate: { id: number; name: string; eventId: number; eventName: string; testMode: boolean } }
   | { ok: false; status: 403 | 404 | 409; message: string };
 
 /** Cek user boleh scan di gate ini & gate/event sedang aktif. */
@@ -29,7 +29,7 @@ export async function checkGateAccess(user: UserRow, gateId: number): Promise<Ga
   if (!SCAN_ROLES.includes(user.role)) return { ok: false, status: 403, message: "Role Anda tidak bisa melakukan scan" };
   const gate = await db.gate.findUnique({
     where: { id: gateId },
-    include: { event: { select: { name: true, status: true } }, assignments: { where: { userId: user.id }, select: { id: true } } },
+    include: { event: { select: { name: true, status: true, testMode: true } }, assignments: { where: { userId: user.id }, select: { id: true } } },
   });
   if (!gate) return { ok: false, status: 404, message: "Gate tidak ditemukan" };
   if (!ANY_GATE.includes(user.role) && gate.assignments.length === 0) {
@@ -37,5 +37,5 @@ export async function checkGateAccess(user: UserRow, gateId: number): Promise<Ga
   }
   if (!gate.isActive) return { ok: false, status: 409, message: "Gate sedang nonaktif" };
   if (gate.event.status !== "ACTIVE") return { ok: false, status: 409, message: "Event belum/tidak aktif" };
-  return { ok: true, gate: { id: gate.id, name: gate.name, eventId: gate.eventId, eventName: gate.event.name } };
+  return { ok: true, gate: { id: gate.id, name: gate.name, eventId: gate.eventId, eventName: gate.event.name, testMode: gate.event.testMode } };
 }

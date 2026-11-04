@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Scan Gate" };
 
 export default async function ScanPage({ searchParams }: PageProps<"/scan">) {
   const user = await requirePageUser(SCAN_ROLES);
-  const gates = (await usableGates(user)).map((g) => ({ id: g.id, name: g.name, eventName: g.event.name }));
+  const gates = (await usableGates(user)).map((g) => ({ id: g.id, name: g.name, eventName: g.event.name, testMode: g.event.testMode }));
   const canLeave = user.role !== Role.GATE_OFFICER;
   const gateId = Number((await searchParams).gate);
   const gate = gates.find((g) => g.id === gateId);

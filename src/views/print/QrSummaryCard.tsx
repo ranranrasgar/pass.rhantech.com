@@ -22,6 +22,27 @@ export function QrSummaryCard({ summary }: { summary: QrSummary }) {
     router.refresh();
   }
 
+  async function reissueAll() {
+    const reason = prompt(
+      [
+        `Terbitkan ulang QR untuk SEMUA ${summary.activeGuests} tamu aktif?`,
+        "",
+        "Semua QR lama dicabut: gelang yang SUDAH dicetak TIDAK BERLAKU lagi dan harus dicetak ulang.",
+        "Gunakan untuk ganti ke QR format baru (lebih besar) atau bila PDF bocor.",
+        "",
+        "Alasan (wajib):",
+      ].join("\n"),
+    )?.trim();
+    if (!reason) return;
+    if (!confirm(`Yakin? ${summary.withQr} gelang lama akan tidak berlaku.`)) return;
+    setBusy(true);
+    const res = await apiSend<{ revoked: number; created: number }>("/api/qr/reissue-all", "POST", { reason });
+    setBusy(false);
+    if (!res.ok) return toast.error(res.error);
+    toast.success(`${res.data.created} QR baru dibuat, ${res.data.revoked} QR lama dicabut — cetak ulang gelang`);
+    router.refresh();
+  }
+
   const stats: [string, number][] = [
     ["Tamu aktif", summary.activeGuests],
     ["Punya QR", summary.withQr],
@@ -42,6 +63,11 @@ export function QrSummaryCard({ summary }: { summary: QrSummary }) {
         <Button onClick={generate} disabled={busy || summary.withoutQr === 0}>
           {busy ? "Membuat…" : `Buat QR (${summary.withoutQr})`}
         </Button>
+        {summary.withQr > 0 && (
+          <Button variant="outline" onClick={reissueAll} disabled={busy}>
+            Terbitkan ulang semua QR
+          </Button>
+        )}
         <a href="/api/qr/export" className="inline-flex h-8 items-center rounded-lg border px-2.5 text-sm font-medium hover:bg-muted">
           Ekspor daftar QR (XLSX)
         </a>

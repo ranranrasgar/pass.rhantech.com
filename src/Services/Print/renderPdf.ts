@@ -15,13 +15,13 @@ const QUIET_MODULES = 4;
 const pt = (mm: number) => mm * MM_TO_PT;
 
 /** QR + quiet zone di (x, y) berukuran `size` pt (sudah termasuk quiet zone). */
-function drawQr(doc: PDFKit.PDFDocument, token: string, x: number, y: number, size: number) {
+function drawQr(doc: PDFKit.PDFDocument, token: string, x: number, y: number, size: number, quiet = QUIET_MODULES, background = true) {
   const { modules } = QRCode.create(token, { errorCorrectionLevel: "M" });
   const n = modules.size;
-  const m = size / (n + 2 * QUIET_MODULES);
-  doc.rect(x, y, size, size).fill("#FFFFFF");
-  const ox = x + QUIET_MODULES * m;
-  const oy = y + QUIET_MODULES * m;
+  const m = size / (n + 2 * quiet);
+  if (background) doc.rect(x, y, size, size).fill("#FFFFFF");
+  const ox = x + quiet * m;
+  const oy = y + quiet * m;
   for (let r = 0; r < n; r++) {
     // Gabungkan modul gelap yang berurutan dalam satu baris -> PDF lebih kecil.
     for (let c = 0; c < n; c++) {
@@ -92,7 +92,9 @@ function drawLight(doc: PDFKit.PDFDocument, item: PrintItem, o: PrintOptions, b:
 // dari QR & nama contoh. Posisi di bawah dalam piksel gambar 1600 × 128.
 const TEMPLATE = { w: 1600, h: 128 };
 const T = {
-  qr: { cx: 1162, cy: 64, size: 74 }, // kotak putih bagian dalam
+  // Badge putih QR diperbesar hampir setinggi gelang (desain asli 77 px) agar terbaca dari jauh;
+  // tepi kanan tetap menempel label emas (x 1202). Quiet zone tipis 2 modul di dalam badge.
+  badge: { x1: 1201, cy: 64, size: 118, radius: 6, quiet: 2 },
   textX: 1222,
   textMaxX: 1428, // sampai sebelum ujung membulat label emas
   nameBaseline: 59,
@@ -118,8 +120,11 @@ function drawTemplate(doc: PDFKit.PDFDocument, item: PrintItem, o: PrintOptions,
   const sy = b.h / TEMPLATE.h;
   doc.image(template(doc), b.x, b.y, { width: b.w, height: b.h });
 
-  const qr = T.qr.size * Math.min(sx, sy); // tetap persegi walau rasio label berbeda
-  drawQr(doc, item.token, b.x + T.qr.cx * sx - qr / 2, b.y + T.qr.cy * sy - qr / 2, qr);
+  const qr = T.badge.size * Math.min(sx, sy); // tetap persegi walau rasio label berbeda
+  const qx = b.x + T.badge.x1 * sx - qr;
+  const qy = b.y + T.badge.cy * sy - qr / 2;
+  doc.roundedRect(qx, qy, qr, qr, T.badge.radius * Math.min(sx, sy)).fill("#FFFFFF");
+  drawQr(doc, item.token, qx, qy, qr, T.badge.quiet, false); // latar = badge membulat
 
   doc.rect(b.x + T.line.x0 * sx, b.y + (T.line.y - T.line.h / 2) * sy, (T.line.x1 - T.line.x0) * sx, T.line.h * sy).fill(TEXT_DARK);
 
