@@ -186,19 +186,19 @@ Catatan koreksi check-in: jika check-in di-*void*, unique `(guest_id, event_id)`
 
 **Menu baru:** Scan Gate, Riwayat Scan.
 
-- [ ] `POST /api/check-in/scan` sesuai §12.4 + keputusan §1.3 #3:
+- [x] `POST /api/check-in/scan` sesuai §12.4 + keputusan §1.3 #3:
   hasil `SUCCESS`, `UNKNOWN_QR`, `ALREADY_CHECKED_IN`, `INACTIVE`, `WRONG_EVENT`, `ERROR`.
-- [ ] Validasi: sesi, petugas aktif, petugas berhak di gate, gate & event aktif.
-- [ ] Halaman Scan (layar penuh, kontras tinggi):
-  - [ ] Pilih event + gate (hanya gate yang ditugaskan).
-  - [ ] Mode kamera & mode scanner USB (input fokus otomatis, submit saat Enter, debounce).
-  - [ ] Kartu hasil besar: hijau/merah/oranye + teks + ikon, waktu ditampilkan di zona event.
-  - [ ] Bunyi berhasil/gagal + mute.
-  - [ ] Indikator koneksi; saat gagal → **GAGAL TERHUBUNG**, tidak pernah tampil sukses.
-  - [ ] Tombol "Mulai Scan Lagi".
-- [ ] Riwayat Scan: tabel `scan_logs` dengan filter hasil/gate/petugas/waktu.
-- [ ] Dashboard: hadir, belum hadir, %, per gate, 10 check-in terbaru (auto-refresh 10 detik).
-- [ ] Setup HTTPS lokal (mis. mkcert / SSL Laragon) untuk uji di ponsel.
+- [x] Validasi: sesi, petugas aktif, petugas berhak di gate, gate & event aktif.
+- [x] Halaman Scan (layar penuh, kontras tinggi):
+  - [x] Pilih event + gate (hanya gate yang ditugaskan).
+  - [x] Mode kamera & mode scanner USB (input fokus otomatis, submit saat Enter, debounce).
+  - [x] Kartu hasil besar: hijau/merah/oranye + teks + ikon, waktu ditampilkan di zona event.
+  - [x] Bunyi berhasil/gagal + mute.
+  - [x] Indikator koneksi; saat gagal → **GAGAL TERHUBUNG**, tidak pernah tampil sukses.
+  - [x] Tombol "Mulai Scan Lagi".
+- [x] Riwayat Scan: tabel `scan_logs` dengan filter hasil/gate/petugas/waktu.
+- [x] Dashboard: hadir, belum hadir, %, per gate, 10 check-in terbaru (auto-refresh 10 detik).
+- [ ] Setup HTTPS lokal untuk uji di ponsel — skrip `npm run dev:https` (Next `--experimental-https`, mkcert) sudah ada, **belum dijalankan** (memasang CA lokal = perubahan keamanan sistem, dilakukan pengguna).
 
 **DoD / verifikasi (test integrasi ke DB):**
 - TC-05, 06, 07, 09, 10, 11, 14 lulus.

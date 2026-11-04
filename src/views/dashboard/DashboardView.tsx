@@ -2,6 +2,7 @@ import { ROLE_LABELS, type Role } from "@/lib/roles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/views/components/ui/card";
 import { EVENT_STATUS_LABELS, EventStatusBadge } from "@/views/events/EventStatusBadge";
 import type { EventStatus } from "@/generated/prisma/enums";
+import { AttendancePanel, type Attendance } from "./AttendancePanel";
 
 type Props = {
   activeEvent: { name: string; venueName: string; dateLabel: string; status: EventStatus } | null;
@@ -10,9 +11,10 @@ type Props = {
   guestsByGroup: { group: string; count: number }[];
   cancelledGuests: number;
   qr: { activeGuests: number; withQr: number; withoutQr: number } | null;
+  attendance: Attendance | null;
 };
 
-export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests, qr }: Props) {
+export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests, qr, attendance }: Props) {
   const totalGuests = guestsByGroup.reduce((sum, g) => sum + g.count, 0);
   return (
     <div className="space-y-6">
@@ -38,6 +40,8 @@ export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guests
           )}
         </CardContent>
       </Card>
+
+      {attendance && <AttendancePanel a={attendance} />}
 
       {activeEvent && (
         <StatCard

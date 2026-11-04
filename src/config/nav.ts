@@ -10,6 +10,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Data Tamu", href: "/guests", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "Impor Data", href: "/import", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "QR & Cetak", href: "/print", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
+  { label: "Scan Gate", href: "/scan", roles: [Role.SUPER_ADMIN, Role.ADMIN, Role.GATE_OFFICER] },
+  { label: "Riwayat Scan", href: "/scan-logs", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "Pengguna", href: "/users", roles: [Role.SUPER_ADMIN] },
 ];
 

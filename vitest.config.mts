@@ -8,5 +8,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // Tes integrasi DB dijalankan terpisah: npm run test:int (vitest.int.config.mts).
+    exclude: ["**/node_modules/**", "src/**/*.int.test.ts"],
   },
 });

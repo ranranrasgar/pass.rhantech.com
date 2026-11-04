@@ -6,11 +6,36 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
 - **Commit terakhir:** `3092dd6` feat: cetak gelang memakai desain asli (+ commit docs ini). Belum di-push (belum ada remote).
-- **Fase:** Fase 0–3 ✅ (Fase 3 tinggal uji fisik cetak & scan). Berikutnya: **Fase 4 — Scan Gate & Check-in**.
+- **Fase:** Fase 0–4 ✅ (tinggal uji fisik: cetak gelang, scan kamera ponsel/scanner USB via HTTPS). Berikutnya: **Fase 5 — Laporan, Koreksi, Pengaturan** (butuh keputusan §1.3 #9 & opsi koreksi check-in).
+- **Belum di-commit:** pekerjaan Fase 4 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Fase 4: Scan Gate & Check-in
+
+**Apa & mengapa**
+- `POST /api/check-in/scan {token, gateId}` (`CheckInController` → `Services/CheckInService.scan`). Petugas dari sesi; **event ditentukan dari gate**, bukan dari body. Urutan: hash token → `UNKNOWN_QR` → `WRONG_EVENT` → `INACTIVE` (QR dicabut / tamu dibatalkan) → insert `check_ins`; unique `(guest_id, event_id)` + tangkap P2002 → `ALREADY_CHECKED_IN` dengan gate & waktu check-in pertama. Galat tak terduga → `ERROR` (tidak pernah sukses).
+- `scan_logs` ditulis setelah hasil diketahui (keputusan #3) dengan `token_fingerprint` = 16 hex awal sha256; token mentah tidak di log/respons. Penolakan akses (401/403/404/409) **tidak** dicatat di scan_logs (bukan scan sah).
+- Akses (`Services/GateAccessService.ts`): Petugas Gate hanya gate yang ditugaskan; Super Admin/Admin semua gate (untuk uji); Viewer 403; gate nonaktif / event bukan ACTIVE → 409. Waktu ditampilkan dalam `APP_TIMEZONE` (field `time` di respons).
+- Halaman `/scan` (di luar layout admin, layar penuh, kontras tinggi): pilih gate (gate tunggal langsung terbuka), mode **Scanner USB** (input selalu fokus, kirim saat Enter) dan **Kamera** (`@zxing/browser`, kamera belakang, ditahan setelah hasil sampai "Mulai Scan Lagi"), debounce token sama 2 dtk, timeout 8 dtk, kartu hasil besar (hijau/oranye/merah + ikon + teks + tindakan), bunyi Web Audio + mute (localStorage), indikator koneksi (ping `/api/check-in/ping` tiap 15 dtk). Fetch gagal → **GAGAL TERHUBUNG**, tidak pernah sukses (TC-11). Komponen dirender client-only (`ScanStationClient`, `ssr: false`).
+- Petugas yang membuka `/dashboard` diarahkan ke `/scan`. Menu baru: **Scan Gate** (Super Admin, Admin, Petugas), **Riwayat Scan** (Super Admin, Admin; filter hasil/gate/petugas/tanggal, paginasi 50).
+- Dashboard: panel Kehadiran (terdaftar aktif, hadir, belum, %, per gate, 10 check-in terbaru), auto-refresh 10 dtk saat tab terlihat.
+- **Tes integrasi** ke DB terpisah `venuepass_test` (`TEST_DATABASE_URL` di `.env`, `npm run test:int`, `vitest.int.config.mts` menolak jalan bila URL bukan `*_test`; `server-only` di-stub). `npm test` mengecualikan `*.int.test.ts`. Setelah menambah migrasi: `DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy`.
+- `npm run dev:https` = `next dev --experimental-https -H 0.0.0.0` untuk uji kamera di ponsel (kamera browser butuh HTTPS di luar localhost).
+
+**File utama:** `src/Services/{CheckInService,GateAccessService}.ts` (+ `CheckInService.int.test.ts`), `src/Models/{CheckIn,ScanLog}.ts`, `src/Http/Controllers/CheckInController.ts`, `src/Http/Requests/ScanRequest.ts`, `src/app/api/check-in/**`, `src/app/scan/page.tsx`, `src/app/(admin)/scan-logs/page.tsx`, `src/views/scan/**`, `src/views/scan-logs/ScanLogIndex.tsx`, `src/views/dashboard/{AttendancePanel,AutoRefresh}.tsx`, `vitest.int.config.mts`, `src/test/server-only-stub.ts`.
+
+**Verifikasi**
+- `lint`, `typecheck`, `npm test` (35) dan `npm run test:int` (10: TC-05/06/07/08/09/10/14, spasi/Enter scanner USB, scan_logs tanpa token) lulus.
+- Uji HTTP di event uji terpisah (baris uji dihapus setelahnya, event pengguna utuh): TC-05/06/07/09/10/14 + viewer/401/409/404, **TC-08 20 request paralel → 1 SUCCESS + 19 ALREADY**, respons maks 1,1 dtk di dev server, check_ins = 2, redirect petugas, pilih gate, Riwayat Scan, dashboard 40%.
+
+**Belum dilakukan / perlu tindakan manual**
+- TC-11 (koneksi putus) & tampilan halaman scan belum dicoba di browser oleh manusia (agent tidak bisa login di browser).
+- Uji di ponsel: jalankan `npm run dev:https` (pertama kali memasang CA mkcert — perlu persetujuan pengguna), buka `https://<IP-laptop>:3000/scan` dari ponsel di Wi-Fi yang sama; ponsel perlu memercayai sertifikat.
+- Uji scanner USB & cetak gelang fisik.
+- `npm install` (dependensi baru `@zxing/browser`); buat DB `venuepass_test` + `migrate deploy` di mesin lain.
 
 ### 2026-11-04 — `3092dd6` feat: cetak gelang memakai desain asli, hanya QR + nama + entitas berubah
 
