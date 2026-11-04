@@ -212,12 +212,12 @@ Catatan koreksi check-in: jika check-in di-*void*, unique `(guest_id, event_id)`
 
 **Menu baru:** Laporan Kehadiran, Pengaturan.
 
-- [ ] Laporan kehadiran: kolom §11.6, filter event/grup/gate/status/rentang waktu.
-- [ ] Tab: Semua, Belum Hadir, Per Gate (rekap jumlah), Scan Ditolak/Duplikat.
-- [ ] Ekspor XLSX & CSV mengikuti filter aktif (role: Super Admin, Admin, Viewer).
-- [ ] Koreksi check-in oleh admin dengan alasan → audit log before/after (sesuai opsi yang disepakati).
-- [ ] Pengaturan: zona waktu, default bunyi scan, kelola preset cetak, retensi data (catatan kebijakan).
-- [ ] Viewer Audit Log (filter user/aksi/tanggal) di dalam Pengaturan.
+- [x] Laporan kehadiran: kolom §11.6, filter event/grup/gate/status/rentang waktu.
+- [x] Tab: Semua, Belum Hadir, Per Gate (rekap jumlah), Scan Ditolak/Duplikat.
+- [x] Ekspor XLSX & CSV mengikuti filter aktif (role: Super Admin, Admin, Viewer).
+- [x] Koreksi check-in oleh admin dengan alasan → audit log before/after. *(Opsi disepakati 4 Nov 2026: "Batalkan check-in" — data lama ke `audit_logs.before_data`, baris `check_ins` dihapus, tamu bisa scan lagi.)*
+- [-] Pengaturan: zona waktu, default bunyi scan, kelola preset cetak, retensi — **tidak dibuat** (keputusan pengguna 4 Nov 2026: Pengaturan hanya berisi Audit Log; zona waktu tetap dari `APP_TIMEZONE`, preset dikelola di halaman QR & Cetak).
+- [x] Viewer Audit Log (filter user/aksi/tanggal) di dalam Pengaturan.
 
 **DoD / verifikasi:**
 - Angka ekspor = angka dashboard = query DB (TC-12).

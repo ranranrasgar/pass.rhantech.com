@@ -6,11 +6,32 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
 - **Commit terakhir:** `0775a87` feat: Fase 4 — scan gate & check-in atomik (+ commit docs ini). Belum di-push (belum ada remote).
-- **Fase:** Fase 0–4 ✅ (tinggal uji fisik: cetak gelang, scan kamera ponsel/scanner USB via HTTPS). Berikutnya: **Fase 5 — Laporan, Koreksi, Pengaturan** (butuh keputusan §1.3 #9 & opsi koreksi check-in).
+- **Fase:** Fase 0–5 ✅ (tinggal uji fisik: cetak gelang, scan kamera ponsel/scanner USB via HTTPS). Berikutnya: **Fase 6 — Hardening & Kesiapan Hari Acara** (E2E, beban, keamanan, backup, SOP).
+- **Belum di-commit:** pekerjaan Fase 5 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
-- **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
+- **Keputusan terbuka:** ukuran fisik gelang & printer (preset 250 × 20 mm masih asumsi), jumlah gate & laju kedatangan puncak (untuk simulasi beban F6), jaringan venue.
+- **Keputusan sudah diambil (F5):** koreksi = batalkan check-in (hapus baris + audit); Pengaturan = Audit Log saja.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Fase 5: Laporan, Koreksi, Pengaturan (Audit Log)
+
+**Apa & mengapa**
+- **Laporan Kehadiran** (`/reports`, Super Admin/Admin/Viewer): kolom PRD §11.6 (No, Nama, Grup, Kode, Status, Waktu hadir, Gate, Petugas); tab **Semua / Belum Hadir / Per Gate / Scan Ditolak-Duplikat**; filter grup, gate, status, rentang tanggal (lokal `APP_TIMEZONE`, "sampai" inklusif); paginasi 50. Hanya tamu ACTIVE yang dihitung — sama dengan dashboard. Filter gate/tanggal tanpa status = hanya tamu hadir yang cocok.
+- **Ekspor** `GET /api/reports/export?format=xlsx|csv&<filter sama>` mengikuti tab & filter aktif; CSV UTF-8 + BOM (pemisah koma); setiap ekspor dicatat `report.export` di audit. `GET /api/reports/attendance` = data JSON yang sama.
+- **Koreksi** (keputusan pengguna): `POST /api/check-ins/:id/cancel {reason}` (Super Admin/Admin, alasan ≥ 5 karakter) — data check-in lama + nama gate/petugas disimpan di `audit_logs.before_data` (`checkin.cancel`), baris `check_ins` dihapus → tamu jadi belum hadir & bisa scan lagi. Tombol "Batalkan check-in" di tabel laporan (tidak tampil untuk Viewer).
+- **Pengaturan** (`/settings`, Super Admin): hanya **Audit Log** (keputusan pengguna) — filter pengguna/aksi/tanggal, detail sebelum/sesudah (JSON) per baris. Tabel `app_settings` tetap ada tapi belum dipakai.
+- Menu baru: **Laporan Kehadiran**, **Pengaturan**.
+- Catatan dev: setelah mengubah method objek model (mis. `AuditLog`), Turbopack kadang tetap memakai modul lama ("... is not a function") → restart dev server.
+
+**File utama:** `src/Services/ReportService.ts`, `src/Services/Report/exportFile.ts` (+ test), `src/Http/Controllers/ReportController.ts`, `src/Http/Requests/ReportRequest.ts`, `src/Models/AuditLog.ts` (`paginate`, `actions`), `src/app/api/{reports,check-ins}/**`, `src/app/(admin)/{reports,settings}/page.tsx`, `src/views/{reports,settings}/**`.
+
+**Verifikasi**
+- `lint`, `typecheck`, `npm test` (37), `npm run test:int` (10) lulus.
+- Uji HTTP di event uji terpisah (dihapus setelahnya, event pengguna utuh): ringkasan & semua tab/filter benar; **TC-12** XLSX 7 baris/3 hadir = query DB, CSV belum hadir 4 = DB, dashboard 42,9% = laporan; Viewer bisa lihat & ekspor tetapi 403 untuk batalkan/ubah data dan tidak melihat tombol; batalkan check-in → audit before + alasan, tamu belum hadir lalu bisa scan lagi, batal dua kali 404; Admin non-super tidak bisa buka Pengaturan — 27/27.
+
+**Belum dilakukan / perlu tindakan manual**
+- Tampilan laporan & audit log belum dicek manusia di browser; buka file ekspor di Excel (CSV memakai koma — bila Excel berlokal Indonesia memisah kolom dengan titik koma, pakai XLSX).
 
 ### 2026-11-04 — `0775a87` feat: Fase 4 — scan gate & check-in atomik
 

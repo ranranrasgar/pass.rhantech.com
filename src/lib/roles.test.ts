@@ -26,16 +26,16 @@ describe("guard role", () => {
 describe("menu per role", () => {
   const hrefs = (role: Role) => navFor(role).map((i) => i.href);
 
-  it("Super Admin melihat semua menu Fase 1–4", () => {
-    expect(hrefs(Role.SUPER_ADMIN)).toEqual(["/dashboard", "/events", "/gates", "/guests", "/import", "/print", "/scan", "/scan-logs", "/users"]);
+  it("Super Admin melihat semua menu Fase 1–5", () => {
+    expect(hrefs(Role.SUPER_ADMIN)).toEqual(["/dashboard", "/events", "/gates", "/guests", "/import", "/print", "/scan", "/scan-logs", "/reports", "/users", "/settings"]);
   });
 
   it("Admin tidak melihat Pengguna", () => {
-    expect(hrefs(Role.ADMIN)).toEqual(["/dashboard", "/events", "/gates", "/guests", "/import", "/print", "/scan", "/scan-logs"]);
+    expect(hrefs(Role.ADMIN)).toEqual(["/dashboard", "/events", "/gates", "/guests", "/import", "/print", "/scan", "/scan-logs", "/reports"]);
   });
 
-  it("Viewer hanya Dashboard; Petugas Dashboard + Scan Gate", () => {
-    expect(hrefs(Role.VIEWER)).toEqual(["/dashboard"]);
+  it("Viewer Dashboard + Laporan; Petugas Dashboard + Scan Gate", () => {
+    expect(hrefs(Role.VIEWER)).toEqual(["/dashboard", "/reports"]);
     expect(hrefs(Role.GATE_OFFICER)).toEqual(["/dashboard", "/scan"]);
   });
 });
