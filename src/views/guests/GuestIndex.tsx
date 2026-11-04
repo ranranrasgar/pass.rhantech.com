@@ -10,6 +10,7 @@ import { Button } from "@/views/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/views/components/ui/table";
 import { GuestFilters, type GuestFilterValues } from "./GuestFilters";
 import { GuestFormDialog } from "./GuestFormDialog";
+import { GuestQrActions, QrBadge } from "./GuestQrActions";
 
 export type GuestItem = {
   id: number;
@@ -18,6 +19,7 @@ export type GuestItem = {
   groupName: string;
   status: "ACTIVE" | "CANCELLED";
   notes: string | null;
+  qr: "ACTIVE" | "REVOKED" | "NONE";
 };
 
 type Props = {
@@ -78,13 +80,14 @@ export function GuestIndex({ eventName, guests, groups, filters, page, perPage, 
               <TableHead>Nama</TableHead>
               <TableHead>Grup</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>QR</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
             {guests.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   Tidak ada tamu. Tambahkan manual atau lewat menu Impor Data.
                 </TableCell>
               </TableRow>
@@ -98,7 +101,11 @@ export function GuestIndex({ eventName, guests, groups, filters, page, perPage, 
                   <Badge variant={g.status === "ACTIVE" ? "default" : "outline"}>{g.status === "ACTIVE" ? "Aktif" : "Dibatalkan"}</Badge>
                 </TableCell>
                 <TableCell>
+                  <QrBadge qr={g.qr} />
+                </TableCell>
+                <TableCell>
                   <div className="flex justify-end gap-2">
+                    <GuestQrActions guest={g} />
                     <Button variant="outline" size="sm" onClick={() => openForm(g)}>
                       Ubah
                     </Button>

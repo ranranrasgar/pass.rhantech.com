@@ -42,6 +42,19 @@ enum Orientation {
   LANDSCAPE
 }
 
+// LABEL = satu label per halaman (printer label/gelang); A4/LETTER = lembar berisi grid label.
+enum PaperSize {
+  A4
+  LETTER
+  LABEL
+}
+
+// DARK = gaya gelang tamu (hitam + emas).
+enum PrintTheme {
+  LIGHT
+  DARK
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String   @db.VarChar(150)
@@ -235,6 +248,8 @@ model PrintPreset {
   // null = otomatis
   columns     Int?
   orientation Orientation @default(PORTRAIT)
+  paper       PaperSize   @default(A4)
+  theme       PrintTheme  @default(LIGHT)
   fields      Json
   qrSizeMm    Decimal     @map("qr_size_mm") @db.Decimal(6, 2)
   createdAt   DateTime    @default(now()) @map("created_at")

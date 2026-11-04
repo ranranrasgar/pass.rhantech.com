@@ -9,6 +9,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Gate & Petugas", href: "/gates", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "Data Tamu", href: "/guests", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "Impor Data", href: "/import", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
+  { label: "QR & Cetak", href: "/print", roles: [Role.SUPER_ADMIN, Role.ADMIN] },
   { label: "Pengguna", href: "/users", roles: [Role.SUPER_ADMIN] },
 ];
 

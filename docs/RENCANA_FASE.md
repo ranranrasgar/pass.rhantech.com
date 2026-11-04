@@ -165,15 +165,15 @@ Catatan koreksi check-in: jika check-in di-*void*, unique `(guest_id, event_id)`
 
 **Menu baru:** QR & Cetak.
 
-- [ ] `lib/qr.ts`: token `VP1_` + 32 byte acak base64url (`crypto.randomBytes`), `sha256` → `token_hash`, `token_last4`, (opsional) `token_encrypted`.
-- [ ] Generate massal untuk tamu aktif tanpa QR aktif; generate per tamu.
-- [ ] Terbitkan ulang (cabut token lama + buat baru) & cabut QR, wajib alasan → audit log.
-- [ ] Status QR tampil di Data Tamu (punya QR / dicabut / belum).
-- [ ] Halaman cetak: pilih tamu (semua / grup / pilihan / rentang No), preset (Kartu 85,6×54, Label 50×30, Kustom), margin, jarak, kolom (auto/manual), orientasi, ukuran QR, field yang dicetak (nama event, nama, grup, kode).
-- [ ] Pratinjau HTML skala mm + unduh **PDF** (pdfkit). Quiet zone ≥ 4 modul.
-- [ ] Simpan preset cetak (`print_presets`).
-- [ ] Ekspor daftar penerbitan QR (XLSX).
-- [ ] Dashboard: jumlah tamu ber-QR vs belum.
+- [x] `lib/qr.ts`: token `VP1_` + 32 byte acak base64url (`crypto.randomBytes`), `sha256` → `token_hash`, `token_last4`, (opsional) `token_encrypted`.
+- [x] Generate massal untuk tamu aktif tanpa QR aktif; generate per tamu.
+- [x] Terbitkan ulang (cabut token lama + buat baru) & cabut QR, wajib alasan → audit log.
+- [x] Status QR tampil di Data Tamu (punya QR / dicabut / belum).
+- [x] Halaman cetak: pilih tamu (semua / grup / pilihan / rentang No), preset (Kartu 85,6×54, Label 50×30, Kustom), margin, jarak, kolom (auto/manual), orientasi, ukuran QR, field yang dicetak (nama event, nama, grup, kode).
+- [x] Pratinjau + unduh **PDF** (pdfkit). Quiet zone ≥ 4 modul. *(Pratinjau = halaman 1 PDF di iframe, bukan HTML — ukurannya pasti sama dengan hasil cetak.)*
+- [x] Simpan preset cetak (`print_presets`).
+- [x] Ekspor daftar penerbitan QR (XLSX).
+- [x] Dashboard: jumlah tamu ber-QR vs belum.
 
 **DoD / verifikasi:**
 - 742 token unik (cek `COUNT(DISTINCT token_hash)`) (TC-04).

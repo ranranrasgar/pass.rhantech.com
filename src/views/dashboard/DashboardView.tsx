@@ -9,9 +9,10 @@ type Props = {
   usersByRole: Record<Role, number>;
   guestsByGroup: { group: string; count: number }[];
   cancelledGuests: number;
+  qr: { activeGuests: number; withQr: number; withoutQr: number } | null;
 };
 
-export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests }: Props) {
+export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guestsByGroup, cancelledGuests, qr }: Props) {
   const totalGuests = guestsByGroup.reduce((sum, g) => sum + g.count, 0);
   return (
     <div className="space-y-6">
@@ -42,6 +43,16 @@ export function DashboardView({ activeEvent, eventsByStatus, usersByRole, guests
         <StatCard
           title={`Tamu aktif per grup — total ${totalGuests.toLocaleString("id-ID")}${cancelledGuests ? ` (${cancelledGuests} dibatalkan)` : ""}`}
           rows={guestsByGroup.length ? guestsByGroup.map((g) => [g.group, g.count]) : [["Belum ada tamu", 0]]}
+        />
+      )}
+
+      {qr && (
+        <StatCard
+          title="QR tamu aktif"
+          rows={[
+            ["Punya QR", qr.withQr],
+            ["Belum punya QR", qr.withoutQr],
+          ]}
         />
       )}
 

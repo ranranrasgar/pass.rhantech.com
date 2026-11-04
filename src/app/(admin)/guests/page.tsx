@@ -22,7 +22,15 @@ export default async function GuestsPage({ searchParams }: PageProps<"/guests">)
   return (
     <GuestIndex
       eventName={event.name}
-      guests={rows.map((g) => ({ id: g.id, externalCode: g.externalCode, name: g.name, groupName: g.groupName, status: g.status, notes: g.notes }))}
+      guests={rows.map((g) => ({
+        id: g.id,
+        externalCode: g.externalCode,
+        name: g.name,
+        groupName: g.groupName,
+        status: g.status,
+        notes: g.notes,
+        qr: !g.qrCredentials[0] ? "NONE" : g.qrCredentials[0].isActive ? "ACTIVE" : "REVOKED",
+      }))}
       groups={groups}
       filters={{ q: query.q, group: query.group, status: query.status }}
       page={query.page}

@@ -41,6 +41,8 @@ export const Guest = {
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         skip: (f.page - 1) * f.perPage,
         take: f.perPage,
+        // QR terakhir saja: aktif / dicabut / belum ada.
+        include: { qrCredentials: { select: { isActive: true }, orderBy: { issuedAt: "desc" }, take: 1 } },
       }),
     ]);
     return { total, rows };

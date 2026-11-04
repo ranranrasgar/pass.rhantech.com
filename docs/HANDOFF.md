@@ -6,10 +6,36 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
 - **Commit terakhir:** `0e92d68` feat: kode tamu otomatis 0001.. per event + tema hitam-emas gelang (+ commit docs ini). Belum di-push (belum ada remote).
-- **Fase:** Fase 0 ✅, Fase 1 ✅, Fase 2 ✅ (DoD terverifikasi). Berikutnya: **Fase 3 — QR & Cetak** (butuh konfirmasi ukuran gelang/kartu & printer).
+- **Fase:** Fase 0–3 ✅ (Fase 3 tinggal uji fisik cetak & scan). Berikutnya: **Fase 4 — Scan Gate & Check-in**.
+- **Belum di-commit:** pekerjaan Fase 3 (entri teratas Riwayat).
+- **Data di DB dev = data kerja pengguna** (event `Event-Bandung` id 1, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Fase 3: QR & Cetak
+
+**Apa & mengapa**
+- `src/lib/qr.ts`: token `VP1_` + 32 byte acak base64url; DB menyimpan `token_hash` (sha256, unik), `token_last4`, dan `token_encrypted` (AES-256-GCM, kunci `QR_ENC_KEY`, format iv|tag|data base64) khusus untuk cetak ulang. Token mentah hanya ada di PDF; tidak ada di respons API, log, atau ekspor.
+- `Services/QrService.ts`: generate massal (tamu ACTIVE tanpa QR aktif), terbitkan per tamu, **terbitkan ulang** (QR lama dicabut, alasan wajib), **cabut** (alasan wajib). Semua di bawah advisory lock `(1002, event_id)` supaya satu tamu tidak punya dua QR aktif; audit `qr.generate_bulk|issue|reissue|revoke|print`.
+- Cetak: `Services/Print/layout.ts` (hitung grid dalam mm, fungsi murni + tes), `renderPdf.ts` (pdfkit; QR vektor, quiet zone 4 modul, modul gelap digabung per baris → 839 gelang ≈ 1,9 MB / 1,8 dtk), `PrintService.ts` (pilih tamu: semua / grup / daftar kode `0001-0100, 0150`; tamu tanpa QR aktif dilewati & dihitung di header `X-Skipped-No-Qr`).
+- Kertas: `LABEL` (1 label per halaman, ukuran halaman = label → printer gelang/label) atau `A4`/`LETTER` (grid, kolom otomatis/manual, orientasi). Tema `DARK` meniru gelang tamu (hitam, judul emas, QR di kotak putih, nama+grup di label emas) dan `LIGHT` (putih + garis potong). Teks panjang dikecilkan s/d 70% lalu dipotong "…".
+- Migrasi `print_paper_theme`: kolom `print_presets.paper` & `theme` (aditif, data aman). **Setelah migrasi, restart dev server** — `src/lib/db.ts` menyimpan PrismaClient di `globalThis`, jadi client lama tetap dipakai sampai restart.
+- `next.config.ts`: `serverExternalPackages: ["pdfkit"]` (pdfkit membaca font AFM lewat `__dirname`).
+- Preset bawaan di `src/config/printPresets.ts`. **ASUMSI** gelang 254 × 25,4 mm (Tyvek 10"×1") karena ukuran asli belum dikonfirmasi — ubah di form lalu "Simpan sebagai preset".
+- UI: menu **QR & Cetak** (`/print`): ringkasan + tombol Buat QR + ekspor XLSX, pilih tamu, preset, ukuran, field, pratinjau halaman 1 (iframe PDF), unduh PDF. Data Tamu: kolom QR (Punya QR / Dicabut / Belum) + aksi Buat QR / Terbitkan ulang / Cabut QR. Dashboard: tamu ber-QR vs belum.
+
+**File utama:** `src/lib/qr.ts`, `src/Models/{QrCredential,PrintPreset}.ts`, `src/Services/QrService.ts`, `src/Services/Print/**`, `src/Http/Controllers/{Qr,Print}Controller.ts`, `src/Http/Requests/PrintRequest.ts`, `src/app/api/{qr,print,print-presets,guests/[id]/issue-qr,guests/[id]/revoke-qr}/**`, `src/app/(admin)/print/page.tsx`, `src/views/print/**`, `src/views/guests/GuestQrActions.tsx`, `src/config/printPresets.ts`, `prisma/migrations/*_print_paper_theme`.
+
+**Verifikasi**
+- `lint`, `typecheck`, `npm test` (35 test: token, enkripsi, layout, dimensi PDF) lulus.
+- Uji HTTP pada **event uji terpisah** berisi 840 tamu dari kedua file (lalu hanya baris uji yang dihapus): generate 840 (0,5 dtk), generate ulang 0; **TC-04** 841 token unik & 841/841 hasil dekripsi cocok dengan hash; terbitkan ulang/cabut wajib alasan; **TC-13** PDF gelang 839 halaman tepat 254 × 25,4 mm, A4 landscape/grid sesuai; pilih grup/kode; preset simpan/hapus; ekspor XLSX tanpa token; Viewer 403 — 25/25 lulus. Halaman `/print`, `/guests`, `/dashboard` ter-render.
+- **QR belum dibuat untuk Event-Bandung** — itu keputusan pengguna (klik "Buat QR" di menu QR & Cetak).
+
+**Belum dilakukan / perlu tindakan manual**
+- Uji fisik: cetak di gelang asli, scan dengan kamera ponsel & scanner USB (DoD F3). Konfirmasi ukuran gelang & printer lalu sesuaikan preset.
+- Interaksi UI (unduh, pratinjau, prompt alasan) belum dicoba manusia.
+- `npm install` di mesin lain (dependensi baru `pdfkit`, `qrcode`), `npx prisma migrate dev`, restart dev server.
 
 ### 2026-11-04 — `0e92d68` feat: kode tamu otomatis 0001.. per event + tema hitam-emas gelang
 
