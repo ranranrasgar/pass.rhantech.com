@@ -4,18 +4,20 @@ import type { PrintOptions } from "@/Services/Print/renderPdf";
 export type PresetOptions = PrintOptions;
 
 const allFields = { eventName: true, name: true, group: true, code: true };
+// Gelang: sama seperti desain — hanya QR, nama, dan entitas/grup.
+const bandFields = { eventName: false, name: true, group: true, code: false };
 
 export const BUILTIN_PRESETS: { key: string; name: string; options: PresetOptions }[] = [
   {
     key: "gelang",
-    // ASUMSI ukuran gelang Tyvek umum 10" × 1"; sesuaikan dengan gelang asli.
-    name: "Gelang 254 × 25,4 mm (1 per halaman)",
-    options: { paper: "LABEL", orientation: "PORTRAIT", widthMm: 254, heightMm: 25.4, marginMm: 0, gapXMm: 0, gapYMm: 0, columns: null, qrSizeMm: 21, theme: "DARK", fields: allFields },
+    // Rasio desain gelang 1600 × 128 px = 12,5 : 1 -> 250 × 20 mm. ASUMSI ukuran fisik; sesuaikan.
+    name: "Gelang 250 × 20 mm (1 per halaman)",
+    options: { paper: "LABEL", orientation: "PORTRAIT", widthMm: 250, heightMm: 20, marginMm: 0, gapXMm: 0, gapYMm: 0, columns: null, qrSizeMm: 11.5, theme: "DARK", fields: bandFields },
   },
   {
     key: "gelang-a4",
-    name: "Gelang 254 × 25,4 mm di A4 landscape",
-    options: { paper: "A4", orientation: "LANDSCAPE", widthMm: 254, heightMm: 25.4, marginMm: 10, gapXMm: 0, gapYMm: 3, columns: null, qrSizeMm: 21, theme: "DARK", fields: allFields },
+    name: "Gelang 250 × 20 mm di A4 landscape",
+    options: { paper: "A4", orientation: "LANDSCAPE", widthMm: 250, heightMm: 20, marginMm: 10, gapXMm: 0, gapYMm: 3, columns: null, qrSizeMm: 11.5, theme: "DARK", fields: bandFields },
   },
   {
     key: "kartu",

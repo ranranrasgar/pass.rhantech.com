@@ -17,16 +17,17 @@ function mediaBoxes(pdf: Buffer): number[][] {
 }
 
 describe("renderPdf (TC-13: dimensi PDF sesuai input)", () => {
-  it("gelang LABEL 254×25,4 mm: 1 halaman per tamu, ukuran halaman = gelang", async () => {
-    const o: PrintOptions = { paper: "LABEL", orientation: "PORTRAIT", widthMm: 254, heightMm: 25.4, marginMm: 0, gapXMm: 0, gapYMm: 0, columns: null, qrSizeMm: 21, theme: "DARK", fields };
+  it("gelang LABEL 250×20 mm (template desain): 1 halaman per tamu, ukuran halaman = gelang", async () => {
+    const o: PrintOptions = { paper: "LABEL", orientation: "PORTRAIT", widthMm: 250, heightMm: 20, marginMm: 0, gapXMm: 0, gapYMm: 0, columns: null, qrSizeMm: 21, theme: "DARK", fields };
     const { pdf, layout } = await renderPdf([item(1), item(2), item(3)], o);
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(layout.perPage).toBe(1);
     const boxes = mediaBoxes(pdf);
     expect(boxes).toHaveLength(3);
+    expect(pdf.toString("latin1")).toContain("/Subtype /Image"); // gambar desain ikut tertanam
     for (const [w, h] of boxes) {
-      expect(w).toBeCloseTo(254 * MM_TO_PT, 1);
-      expect(h).toBeCloseTo(25.4 * MM_TO_PT, 1);
+      expect(w).toBeCloseTo(250 * MM_TO_PT, 1);
+      expect(h).toBeCloseTo(20 * MM_TO_PT, 1);
     }
   });
 

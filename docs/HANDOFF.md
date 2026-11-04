@@ -7,10 +7,25 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
 - **Commit terakhir:** `665b9b5` feat: Fase 3 — QR & cetak gelang/kartu PDF (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–3 ✅ (Fase 3 tinggal uji fisik cetak & scan). Berikutnya: **Fase 4 — Scan Gate & Check-in**.
-- **Data di DB dev = data kerja pengguna** (event `Event-Bandung` id 1, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
+- **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
+- **Belum di-commit:** gelang memakai desain asli (entri teratas Riwayat).
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Gelang = desain asli, hanya QR + nama + entitas yang berubah
+
+**Apa & mengapa** (permintaan pengguna: "bentuk gelangnya samakan saja, yang berubah nama dan QR-nya saja")
+- Tema `DARK` tidak lagi menggambar tiruan; kini memakai **gambar desain asli** `src/Services/Print/assets/gelang-template.png` sebagai latar. Template dibuat dari `docs/WhatsApp Image 2026-11-04 at 8.41.29 AM.jpeg` dengan mengosongkan kotak QR dan menghapus nama/entitas contoh (isi ulang gradasi emas) — tidak ada data pribadi di template. Skrip pembuatnya tidak di-commit; bila desain berubah, minta file desain kosong (tanpa nama & QR) dari desainer dan timpa PNG itu.
+- Di atas template digambar per tamu: QR (vektor, quiet zone 4 modul) di kotak putih, garis pemisah, NAMA (huruf kapital), dan baris kedua = grup/entitas (+ kode bila field "Kode tamu" dicentang). Posisi dalam piksel gambar 1600 × 128 (`T` di `renderPdf.ts`), diskalakan ke ukuran label. Nama event & logo sudah ada di gambar, jadi field "Nama event" dan "Ukuran QR" diabaikan untuk tema ini.
+- Rasio gambar 12,5 : 1 → preset gelang diganti ke **250 × 20 mm** (masih ASUMSI ukuran fisik). Ukuran lain akan membuat gambar gepeng.
+- Gambar dimuat sekali per dokumen (`doc.openImage`, belum ada di @types/pdfkit → cast): 839 gelang ≈ 1,9 MB, bukan ~110 MB.
+- Nama: font desain 5,6 pt (20 mm), dikecilkan s/d 60% sebelum dipotong. Dari 840 nama asli: 807 utuh, 33 dikecilkan, 0 terpotong.
+- Resolusi gambar 1600 px untuk 250 mm ≈ 160 dpi — cukup, tapi untuk hasil tajam minta file desain resolusi lebih tinggi (≥ 3000 px lebar) dengan rasio sama.
+
+**File utama:** `src/Services/Print/renderPdf.ts` (+ test), `src/Services/Print/assets/gelang-template.png`, `src/config/printPresets.ts`, `src/views/print/PrintSettings.tsx`.
+
+**Verifikasi:** `lint`, `typecheck`, 35 test lulus; contoh PDF dicek visual (tampil sama dengan desain); uji HTTP di event uji terpisah: 839 halaman 250 × 20 mm, 1,9 MB, 1,6 dtk (baris uji dihapus, event pengguna utuh).
 
 ### 2026-11-04 — `665b9b5` feat: Fase 3 — QR & cetak gelang/kartu PDF
 

@@ -62,7 +62,7 @@ export function PrintSettings({ options: o, onChange }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="p-theme">Tema</Label>
           <NativeSelect id="p-theme" value={o.theme} onChange={(e) => set("theme", e.target.value as PresetOptions["theme"])}>
-            <option value="DARK">Gelang (hitam-emas)</option>
+            <option value="DARK">Gelang (desain asli)</option>
             <option value="LIGHT">Terang (putih)</option>
           </NativeSelect>
         </div>
@@ -84,6 +84,13 @@ export function PrintSettings({ options: o, onChange }: Props) {
           </div>
         ))}
       </div>
+
+      {o.theme === "DARK" && (
+        <p className="text-xs text-muted-foreground">
+          Tema gelang memakai gambar desain asli; posisi & ukuran QR mengikuti desain (isian &quot;Ukuran QR&quot; diabaikan, nama event
+          sudah ada di gambar). Pakai rasio 12,5 : 1, mis. 250 × 20 mm, agar gambar tidak gepeng.
+        </p>
+      )}
 
       <fieldset className="flex flex-wrap gap-4">
         <legend className="mb-1.5 text-sm font-medium">Informasi yang dicetak</legend>
