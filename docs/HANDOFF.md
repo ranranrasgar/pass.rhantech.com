@@ -5,16 +5,15 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `0775a87` feat: Fase 4 — scan gate & check-in atomik (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `94062a8` feat: Fase 5 — laporan kehadiran, koreksi check-in, audit log (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–5 ✅ (tinggal uji fisik: cetak gelang, scan kamera ponsel/scanner USB via HTTPS). Berikutnya: **Fase 6 — Hardening & Kesiapan Hari Acara** (E2E, beban, keamanan, backup, SOP).
-- **Belum di-commit:** pekerjaan Fase 5 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** ukuran fisik gelang & printer (preset 250 × 20 mm masih asumsi), jumlah gate & laju kedatangan puncak (untuk simulasi beban F6), jaringan venue.
 - **Keputusan sudah diambil (F5):** koreksi = batalkan check-in (hapus baris + audit); Pengaturan = Audit Log saja.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Fase 5: Laporan, Koreksi, Pengaturan (Audit Log)
+### 2026-11-04 — `94062a8` feat: Fase 5 — laporan kehadiran, koreksi check-in, audit log
 
 **Apa & mengapa**
 - **Laporan Kehadiran** (`/reports`, Super Admin/Admin/Viewer): kolom PRD §11.6 (No, Nama, Grup, Kode, Status, Waktu hadir, Gate, Petugas); tab **Semua / Belum Hadir / Per Gate / Scan Ditolak-Duplikat**; filter grup, gate, status, rentang tanggal (lokal `APP_TIMEZONE`, "sampai" inklusif); paginasi 50. Hanya tamu ACTIVE yang dihitung — sama dengan dashboard. Filter gate/tanggal tanpa status = hanya tamu hadir yang cocok.
