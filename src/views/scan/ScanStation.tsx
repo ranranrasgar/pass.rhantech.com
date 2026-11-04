@@ -2,8 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Camera, Keyboard, Volume2, VolumeX } from "lucide-react";
+import {
+  Camera,
+  Keyboard,
+  Volume2,
+  VolumeX,
+  ArrowLeftRight,
+  LayoutDashboard,
+  LogOut,
+} from "lucide-react";
 import { logout } from "@/Http/Controllers/AuthController";
+import { cn } from "@/lib/utils";
 import { CameraScanner } from "./CameraScanner";
 import { UsbScanner } from "./UsbScanner";
 import { ResultCard, type ScanOutcome } from "./ResultCard";
@@ -15,8 +24,9 @@ type Props = {
   canLeave: boolean; // admin: kembali ke dashboard
 };
 
-const DEBOUNCE_MS = 2000; // token sama dalam 2 dtk diabaikan (scanner USB sering kirim ganda)
+const DEBOUNCE_MS = 2000;
 const TIMEOUT_MS = 8000;
+
 const pref = (key: string, fallback: string) => {
   try {
     return localStorage.getItem(key) ?? fallback;
@@ -24,6 +34,7 @@ const pref = (key: string, fallback: string) => {
     return fallback;
   }
 };
+
 const savePref = (key: string, value: string) => {
   try {
     localStorage.setItem(key, value);
@@ -31,19 +42,23 @@ const savePref = (key: string, value: string) => {
 };
 
 export function ScanStation({ gate, officerName, canLeave }: Props) {
-  // Komponen ini hanya dirender di client (ScanStationClient, ssr: false) -> aman baca localStorage.
-  const [mode, setMode] = useState<"camera" | "usb">(() => (pref("vp.scanMode", "usb") === "camera" ? "camera" : "usb"));
+  const [mode, setMode] = useState<"camera" | "usb">(() =>
+    pref("vp.scanMode", "camera") === "usb" ? "usb" : "camera"
+  );
   const [muted, setMuted] = useState(() => pref("vp.muted", "0") === "1");
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [busy, setBusy] = useState(false);
   const [online, setOnline] = useState(true);
   const last = useRef<{ token: string; at: number }>({ token: "", at: 0 });
 
-  // Indikator koneksi: ping server tiap 15 dtk + event online/offline browser.
+  // Indikator koneksi server
   useEffect(() => {
     const ping = async () => {
       try {
-        const r = await fetch("/api/check-in/ping", { cache: "no-store", signal: AbortSignal.timeout(5000) });
+        const r = await fetch("/api/check-in/ping", {
+          cache: "no-store",
+          signal: AbortSignal.timeout(5000),
+        });
         setOnline(r.ok);
       } catch {
         setOnline(false);
@@ -70,6 +85,7 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
       if (token === last.current.token && now - last.current.at < DEBOUNCE_MS) return;
       last.current = { token, at: now };
       setBusy(true);
+
       let result: ScanOutcome;
       try {
         const res = await fetch("/api/check-in/scan", {
@@ -83,22 +99,24 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
           result = json as ScanOutcome;
           setOnline(true);
         } else {
-          // 401/403/409 dll: tampilkan pesan server; tidak pernah dianggap berhasil.
-          result = { ok: false, result: "ERROR", message: json?.error ?? `GAGAL (${res.status})` };
+          result = {
+            ok: false,
+            result: "ERROR",
+            message: json?.error ?? `GAGAL (${res.status})`,
+          };
         }
       } catch {
-        // TC-11: koneksi putus / timeout -> GAGAL TERHUBUNG, tidak pernah sukses.
         setOnline(false);
         result = { ok: false, result: "NETWORK", message: "GAGAL TERHUBUNG" };
       }
+
       setOutcome(result);
       setBusy(false);
       if (!muted) playScanSound(result.result === "SUCCESS");
     },
-    [busy, gate.id, muted],
+    [busy, gate.id, muted]
   );
 
-  // Kamera ditahan setelah ada hasil sampai "Mulai Scan Lagi".
   const cameraPaused = busy || outcome !== null;
 
   function chooseMode(m: "camera" | "usb") {
@@ -108,85 +126,156 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800 px-4 py-3">
-        <div>
-          <div className="text-xs font-bold tracking-widest text-primary">VENUEPASS</div>
-          <div className="text-lg font-bold leading-tight md:text-xl">{gate.eventName}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-xl font-black md:text-2xl">{gate.name}</div>
-          <div className="text-sm text-neutral-300">Petugas: {officerName}</div>
-        </div>
-      </header>
-
+    <div className="flex h-[100dvh] flex-col justify-between bg-black text-white select-none overflow-hidden">
+      {/* Test Mode Notification (Sleek Banner) */}
       {gate.testMode && (
-        <div className="bg-amber-400 px-4 py-2 text-center text-base font-black text-black">
-          MODE UJI — check-in ini hanya uji & akan dihapus sebelum acara
+        <div className="bg-amber-400 py-1 px-3 text-center text-[11px] font-bold text-black tracking-wide shrink-0">
+          MODE UJI AKTIF — Data scan tidak mempengaruhi acara sebenarnya
         </div>
       )}
-      <div
-        role="status"
-        className={`px-4 py-1.5 text-center text-sm font-bold ${online ? "bg-green-900 text-green-100" : "bg-red-600 text-white"}`}
-      >
-        {online ? "● Terhubung ke server" : "● KONEKSI TERPUTUS — scan tidak bisa divalidasi"}
-      </div>
 
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 p-4">
-        <div className="flex flex-wrap gap-2">
-          {(["usb", "camera"] as const).map((m) => (
+      {/* Modern Compact Header */}
+      <header className="flex items-center justify-between border-b border-neutral-800/80 bg-neutral-900/90 px-3.5 py-2.5 backdrop-blur-md shrink-0">
+        {/* Gate & Event Name */}
+        <div className="flex flex-col min-w-0 pr-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base font-black text-white tracking-tight leading-none">
+              {gate.name}
+            </span>
+            <div
+              className={cn(
+                "size-2 rounded-full shrink-0",
+                online ? "bg-emerald-400" : "bg-rose-500 animate-pulse"
+              )}
+              title={online ? "Terhubung ke server" : "Koneksi terputus"}
+            />
+          </div>
+          <span className="text-[11px] text-neutral-400 truncate max-w-[150px] sm:max-w-[200px] mt-0.5 leading-tight">
+            {gate.eventName}
+          </span>
+        </div>
+
+        {/* Right Controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Mode Segmented Control */}
+          <div className="flex items-center rounded-lg bg-neutral-800/90 p-0.5 border border-neutral-700/60">
             <button
-              key={m}
               type="button"
-              onClick={() => chooseMode(m)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-base font-bold ${mode === m ? "bg-primary text-primary-foreground" : "bg-neutral-800"}`}
+              onClick={() => chooseMode("camera")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all",
+                mode === "camera"
+                  ? "bg-primary text-neutral-950 shadow-sm"
+                  : "text-neutral-400 hover:text-white"
+              )}
+              title="Kamera HP"
             >
-              {m === "usb" ? <Keyboard className="size-5" /> : <Camera className="size-5" />}
-              {m === "usb" ? "Scanner USB" : "Kamera"}
+              <Camera className="size-3.5" />
+              <span className="hidden xs:inline">Kamera</span>
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => chooseMode("usb")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all",
+                mode === "usb"
+                  ? "bg-primary text-neutral-950 shadow-sm"
+                  : "text-neutral-400 hover:text-white"
+              )}
+              title="Scanner USB"
+            >
+              <Keyboard className="size-3.5" />
+              <span className="hidden xs:inline">USB</span>
+            </button>
+          </div>
+
+          {/* Sound Toggle */}
           <button
             type="button"
             onClick={() => {
               setMuted(!muted);
               savePref("vp.muted", muted ? "0" : "1");
             }}
-            className="ml-auto flex items-center gap-2 rounded-xl bg-neutral-800 px-4 py-2 font-bold"
-            aria-pressed={muted}
+            className={cn(
+              "flex size-8 items-center justify-center rounded-lg border transition-colors",
+              muted
+                ? "bg-neutral-800/50 border-neutral-700/40 text-neutral-500"
+                : "bg-neutral-800 border-neutral-700 text-white"
+            )}
+            title={muted ? "Bunyi mati" : "Bunyi nyala"}
           >
-            {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
-            {muted ? "Bunyi mati" : "Bunyi nyala"}
+            {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
           </button>
-        </div>
 
-        {mode === "camera" ? <CameraScanner paused={cameraPaused} onScan={submit} /> : <UsbScanner disabled={busy} onScan={submit} />}
-
-        {busy ? <div className="rounded-2xl bg-neutral-800 p-6 text-center text-3xl font-black">MEMVALIDASI…</div> : <ResultCard outcome={outcome} />}
-
-        <button
-          type="button"
-          onClick={() => setOutcome(null)}
-          className="rounded-2xl bg-white py-4 text-2xl font-black text-black active:translate-y-px"
-        >
-          Mulai Scan Lagi
-        </button>
-
-        <div className="mt-auto flex justify-between text-sm text-neutral-400">
-          <Link href="/scan" className="underline">
-            Ganti gate
+          {/* Switch Gate */}
+          <Link
+            href="/scan"
+            className="flex size-8 items-center justify-center rounded-lg border border-neutral-700/50 bg-neutral-800/60 text-neutral-400 hover:text-white transition-colors"
+            title="Ganti Gate"
+          >
+            <ArrowLeftRight className="size-4" />
           </Link>
+
+          {/* Back to Dashboard / Logout */}
           {canLeave ? (
-            <Link href="/dashboard" className="underline">
-              Kembali ke dashboard
+            <Link
+              href="/dashboard"
+              className="flex size-8 items-center justify-center rounded-lg border border-neutral-700/50 bg-neutral-800/60 text-neutral-400 hover:text-white transition-colors"
+              title="Dashboard"
+            >
+              <LayoutDashboard className="size-4" />
             </Link>
           ) : (
             <form action={logout}>
-              <button type="submit" className="underline">
-                Keluar
+              <button
+                type="submit"
+                className="flex size-8 items-center justify-center rounded-lg border border-neutral-700/50 bg-neutral-800/60 text-neutral-400 hover:text-rose-400 transition-colors"
+                title="Keluar"
+              >
+                <LogOut className="size-4" />
               </button>
             </form>
           )}
         </div>
+      </header>
+
+      {/* Main Scanner & Result Area (Zero-Scroll Optimized) */}
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-between p-3 sm:p-4 gap-3 overflow-hidden">
+        {/* Scanner Viewport */}
+        <div className="flex-1 flex flex-col justify-center min-h-0">
+          {mode === "camera" ? (
+            <CameraScanner
+              paused={cameraPaused}
+              onScan={submit}
+              onResume={() => setOutcome(null)}
+            />
+          ) : (
+            <UsbScanner disabled={busy} onScan={submit} />
+          )}
+        </div>
+
+        {/* Validating Spinner / Result Card */}
+        <div className="shrink-0">
+          {busy ? (
+            <div className="flex items-center justify-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-900/90 py-5 px-4 text-center">
+              <span className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <span className="text-base font-bold tracking-wider text-white uppercase">
+                Memvalidasi...
+              </span>
+            </div>
+          ) : (
+            <ResultCard outcome={outcome} onReset={() => setOutcome(null)} />
+          )}
+        </div>
+
+        {/* Minimal Bottom Info */}
+        <footer className="flex items-center justify-between text-[11px] text-neutral-500 shrink-0 px-1 pt-1">
+          <span>Petugas: <strong className="text-neutral-400 font-semibold">{officerName}</strong></span>
+          {!online && (
+            <span className="text-rose-400 font-semibold">● Tidak ada jaringan</span>
+          )}
+          <span>VenuePass</span>
+        </footer>
       </main>
     </div>
   );
