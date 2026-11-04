@@ -5,15 +5,14 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 ## Status Terakhir
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
-- **Commit terakhir:** `665b9b5` feat: Fase 3 — QR & cetak gelang/kartu PDF (+ commit docs ini). Belum di-push (belum ada remote).
+- **Commit terakhir:** `3092dd6` feat: cetak gelang memakai desain asli (+ commit docs ini). Belum di-push (belum ada remote).
 - **Fase:** Fase 0–3 ✅ (Fase 3 tinggal uji fisik cetak & scan). Berikutnya: **Fase 4 — Scan Gate & Check-in**.
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
-- **Belum di-commit:** gelang memakai desain asli (entri teratas Riwayat).
 - **Keputusan terbuka:** §1.3 #9 (isi menu Pengaturan) dan opsi koreksi check-in (kolom void vs. hapus+audit) — dibutuhkan di F5; ukuran gelang/printer, jumlah gate, jaringan venue — dibutuhkan F3/F4.
 
 ## Riwayat Perubahan
 
-### 2026-11-04 — (belum di-commit) Gelang = desain asli, hanya QR + nama + entitas yang berubah
+### 2026-11-04 — `3092dd6` feat: cetak gelang memakai desain asli, hanya QR + nama + entitas berubah
 
 **Apa & mengapa** (permintaan pengguna: "bentuk gelangnya samakan saja, yang berubah nama dan QR-nya saja")
 - Tema `DARK` tidak lagi menggambar tiruan; kini memakai **gambar desain asli** `src/Services/Print/assets/gelang-template.png` sebagai latar. Template dibuat dari `docs/WhatsApp Image 2026-11-04 at 8.41.29 AM.jpeg` dengan mengosongkan kotak QR dan menghapus nama/entitas contoh (isi ulang gradasi emas) — tidak ada data pribadi di template. Skrip pembuatnya tidak di-commit; bila desain berubah, minta file desain kosong (tanpa nama & QR) dari desainer dan timpa PNG itu.
