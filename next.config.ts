@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // pdfkit membaca file font (AFM) lewat __dirname; jangan di-bundle.
   serverExternalPackages: ["pdfkit"],
+  poweredByHeader: false,
   turbopack: {
     rules: {
       "*.css": {
@@ -13,6 +14,17 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        // Header keamanan dasar. CSP penuh belum dipasang (butuh nonce untuk script inline Next).
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=()" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+        ],
+      },
       {
         source: "/sw.js",
         headers: [

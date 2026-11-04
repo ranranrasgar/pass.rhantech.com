@@ -50,3 +50,10 @@ next-env.d.ts
 /docs/*.xlsx
 # file kunci sementara Office
 ~$*
+
+# playwright
+/test-results/
+/playwright-report/
+
+# backup database (berisi data tamu)
+/backups/

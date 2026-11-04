@@ -6,12 +6,41 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 
 - **Branch:** `main` (repo baru di-`git init`, belum ada remote).
 - **Commit terakhir:** `94062a8` feat: Fase 5 — laporan kehadiran, koreksi check-in, audit log (+ commit docs ini). Belum di-push (belum ada remote).
-- **Fase:** Fase 0–5 ✅ (tinggal uji fisik: cetak gelang, scan kamera ponsel/scanner USB via HTTPS). Berikutnya: **Fase 6 — Hardening & Kesiapan Hari Acara** (E2E, beban, keamanan, backup, SOP).
+- **Fase:** Fase 0–6 ✅ secara perangkat lunak. Sisa: **uji fisik** oleh penyelenggara (cetak gelang asli, scan di ponsel via HTTPS & scanner USB, jaringan venue) — checklist di `docs/SOP_HARI_ACARA.md` §1.
+- **Belum di-commit:** pekerjaan Fase 6 (entri teratas Riwayat).
 - **Data di DB dev = data kerja pengguna** (event id 1 — kini bernama `BankCapital`, 4 gate, 840 tamu kode 0001–0840). **Jangan TRUNCATE/reset tabel** untuk membersihkan uji — buat event uji sendiri dan hapus hanya baris uji itu.
 - **Keputusan terbuka:** ukuran fisik gelang & printer (preset 250 × 20 mm masih asumsi), jumlah gate & laju kedatangan puncak (untuk simulasi beban F6), jaringan venue.
 - **Keputusan sudah diambil (F5):** koreksi = batalkan check-in (hapus baris + audit); Pengaturan = Audit Log saja.
 
 ## Riwayat Perubahan
+
+### 2026-11-04 — (belum di-commit) Fase 6: Hardening & Kesiapan Hari Acara
+
+**Apa & mengapa**
+- **Rate limit login** (`src/lib/rateLimit.ts`, in-memory per proses): 5 gagal / 15 menit per `email|x-forwarded-for`; login berhasil me-reset. Saat terblokir `authorize` melempar `TooManyAttempts` (`code = "rate_limited"`) → pesan "Terlalu banyak percobaan gagal…". Di LAN tanpa proxy praktis per email (risiko kecil akun dikunci orang lain 15 menit). Multi-instance → pindahkan ke DB/Redis.
+- **Header keamanan** semua route (`next.config.ts`): nosniff, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy (kamera hanya self), COOP; `poweredByHeader: false`. **CSP penuh belum** (perlu nonce untuk script inline Next).
+- **Upload**: impor ditolak 413 dari `Content-Length` sebelum body dibaca (> 5 MB).
+- **Build produksi** lulus (`npm run build`); `.claude/launch.json` punya `venuepass-prod` (port 3100).
+- **Uji beban** (skrip di scratchpad agent, tidak di-commit) di build produksi, event uji berisi 840 tamu kedua file, 4 gate × 1 scanner berurutan + 84 scan ganda serentak: 924 scan dalam 7,4 dtk (125 scan/dtk), p50 26 ms / p95 87 ms / maks 165 ms, 840 SUCCESS + 84 ALREADY, 840 check-in unik. Asumsi puncak 840 tamu/30 menit (0,47 scan/dtk) → kapasitas ±267×. Event uji dihapus.
+- **E2E Playwright** (`e2e/`, `playwright.config.ts`, `npm run test:e2e` setelah `npm run build`): `next start -p 3200` dengan `DATABASE_URL=TEST_DATABASE_URL`; `global-setup` me-reset DB uji & membuat admin E2E (kredensial uji di `e2e/env.ts`, hanya untuk DB `*_test`). Alur: login → event & gate → impor CSV (kode 0001–0005) → Buat QR → pratinjau & unduh PDF (5 halaman) → scan USB (BERHASIL, SUDAH CHECK-IN, QR TIDAK DIKENAL, **offline → GAGAL TERHUBUNG**) → laporan 20% → ekspor XLSX. Memakai Chrome terpasang (`channel: "chrome"`).
+- **Backup**: `scripts/backup-db.ps1` (pg_dump custom format ke `backups/`, rotasi 14, URL dari `.env`) & `scripts/restore-test.ps1` (restore ke DB sementara `venuepass_restore_check`, bandingkan jumlah baris semua tabel, lalu hapus). Diuji pada data pengguna: semua tabel cocok. `backups/` di-ignore (berisi data pribadi). Penjadwalan `schtasks` sengaja tidak dibuat agent (perubahan sistem) — perintah ada di SOP.
+- **SOP** `docs/SOP_HARI_ACARA.md`: persiapan H-3/H-1, pembukaan gate, arti layar & tindakan, meja bantuan (gelang hilang, salah check-in, tamu tak terdaftar), prosedur darurat manual (PRD §14), backup, menjalankan server, penutupan.
+
+**Checklist PRD §15.3**
+| Kriteria | Status |
+|---|---|
+| Impor dan pemeriksaan data berjalan | ✅ (840 tamu, kode 0001–0840) |
+| Semua tamu aktif memiliki QR unik | ✅ di event pengguna (840 QR) |
+| PDF dapat dicetak pada ukuran yang dibutuhkan | ✅ perangkat lunak; ⏳ ukuran fisik gelang belum dikonfirmasi (preset 250 × 20 mm) |
+| Setiap gate dapat login dan melakukan scan | ✅ (uji 4 gate); ⏳ uji perangkat gate asli |
+| Validasi sukses/gagal tampil dengan jelas | ✅ (E2E) |
+| Satu tamu tidak dapat memperoleh dua check-in berhasil | ✅ (TC-08 DB, HTTP, beban) |
+| Rekap hadir/belum hadir dan gate sesuai database | ✅ (TC-12) |
+| Backup dan prosedur gangguan telah diuji | ✅ backup/restore; ⏳ gladi prosedur manual oleh penyelenggara |
+
+**Verifikasi:** `lint`, `typecheck`, `npm test` (39), `npm run test:int` (10), `npm run test:e2e` (6) lulus; uji beban & keamanan 11/11; backup/restore cocok.
+
+**Belum dilakukan / perlu tindakan manual:** uji fisik (gelang, ponsel via HTTPS, scanner USB, jaringan venue), sertifikat HTTPS untuk hari H bila memakai kamera ponsel, opsional jadwal backup `schtasks`, CSP.
 
 ### 2026-11-04 — `94062a8` feat: Fase 5 — laporan kehadiran, koreksi check-in, audit log
 

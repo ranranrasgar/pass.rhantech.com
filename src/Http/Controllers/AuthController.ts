@@ -16,6 +16,9 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
     return {};
   } catch (err) {
     // Pesan sama untuk email salah, password salah, maupun akun nonaktif.
+    if (err instanceof AuthError && (err as AuthError & { code?: string }).code === "rate_limited") {
+      return { error: "Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit." };
+    }
     if (err instanceof AuthError) return { error: "Email atau password salah, atau akun nonaktif" };
     throw err; // redirect sukses dilempar sebagai NEXT_REDIRECT
   }

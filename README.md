@@ -24,7 +24,18 @@ npx prisma db seed     # Super Admin awal dari SEED_ADMIN_*
 npm run dev            # http://localhost:3000
 ```
 
-Cek kualitas: `npm run lint`, `npm run typecheck`, `npm test`.
+Cek kualitas: `npm run lint`, `npm run typecheck`, `npm test` (unit).
+
+Tes ke database **uji** `venuepass_test` (`TEST_DATABASE_URL` di `.env`; buat DB lalu
+`DATABASE_URL=<TEST_DATABASE_URL> npx prisma migrate deploy`):
+
+```bash
+npm run test:int                   # integrasi check-in (termasuk 20 scan paralel)
+npm run build && npm run test:e2e  # E2E Playwright (Chrome terpasang), server port 3200
+```
+
+Hari acara: lihat `docs/SOP_HARI_ACARA.md` (server produksi, HTTPS untuk kamera ponsel,
+backup `scripts/backup-db.ps1` & uji restore `scripts/restore-test.ps1`).
 
 ## Struktur folder (gaya Laravel)
 

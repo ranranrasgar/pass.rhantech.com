@@ -5,7 +5,7 @@ import { HttpError } from "@/Http/Middleware/Authenticate";
 import { Guest } from "@/Models/Guest";
 import { ImportBatch } from "@/Models/ImportBatch";
 import { AuditLog } from "@/Models/AuditLog";
-import { ImportFileError, readSpreadsheet } from "./readSpreadsheet";
+import { ImportFileError, MAX_IMPORT_BYTES, readSpreadsheet } from "./readSpreadsheet";
 import {
   autoMap,
   detectHeaderRow,
@@ -22,6 +22,8 @@ export type ImportInput = { file: File; sheet?: string; mapping?: ColumnMapping 
 
 /** Baca form multipart: file, sheet (opsional), mapping JSON (opsional). */
 export async function parseImportForm(req: Request): Promise<ImportInput> {
+  const length = Number(req.headers.get("content-length") ?? 0);
+  if (length > MAX_IMPORT_BYTES + 64 * 1024) throw new HttpError(413, "Ukuran file maksimal 5 MB");
   const form = await req.formData().catch(() => {
     throw new HttpError(400, "Kirim file sebagai multipart/form-data");
   });

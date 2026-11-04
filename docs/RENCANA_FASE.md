@@ -229,12 +229,12 @@ Catatan koreksi check-in: jika check-in di-*void*, unique `(guest_id, event_id)`
 
 Tidak menambah menu; memastikan semuanya andal.
 
-- [ ] E2E Playwright untuk alur utama: login → impor → generate → cetak → scan → laporan.
-- [ ] Simulasi beban: N gate × laju kedatangan puncak.
-- [ ] Review keamanan: rate limit login, ukuran upload, header keamanan, tidak ada stack trace ke user.
-- [ ] Skrip backup `mysqldump` terjadwal + uji restore.
-- [ ] Dokumen SOP gate & prosedur darurat manual (PRD §14).
-- [ ] Uji fisik: cetak di bahan gelang asli, cahaya venue, beberapa ponsel/scanner.
+- [x] E2E Playwright untuk alur utama: login → impor → generate → cetak → scan → laporan. *(`npm run test:e2e`, Chrome terpasang, server terpisah ke DB uji; termasuk TC-11 offline.)*
+- [x] Simulasi beban: N gate × laju kedatangan puncak. *(4 gate × 840 tamu + 84 scan ganda di build produksi: 125 scan/dtk, p95 87 ms, 840 check-in unik. Asumsi puncak 840 tamu/30 menit = 0,47 scan/dtk.)*
+- [x] Review keamanan: rate limit login, ukuran upload, header keamanan, tidak ada stack trace ke user. *(CSP penuh belum — butuh nonce.)*
+- [x] Skrip backup `pg_dump` + uji restore (`scripts/backup-db.ps1`, `scripts/restore-test.ps1`). Penjadwalan (`schtasks`) dijalankan admin sendiri — lihat SOP.
+- [x] Dokumen SOP gate & prosedur darurat manual (PRD §14) — `docs/SOP_HARI_ACARA.md`.
+- [ ] Uji fisik: cetak di bahan gelang asli, cahaya venue, beberapa ponsel/scanner. *(dilakukan penyelenggara — checklist di SOP §1)*
 
 **DoD:** checklist PRD §15.3 terpenuhi seluruhnya.
 
