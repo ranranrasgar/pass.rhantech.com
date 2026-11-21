@@ -38,6 +38,8 @@ Pegangan untuk **admin** dan **petugas gate**. Prinsip utama: **tamu hanya boleh
 | ⬛ **GAGAL TERHUBUNG** | Server tidak terjangkau — **belum tervalidasi** | Jangan izinkan masuk. Coba lagi; bila berulang → §5. |
 | 🟥 **GAGAL (pesan lain)** | Mis. "Anda tidak ditugaskan di gate ini" | Lapor admin. |
 
+**Tamu tidak membawa gelang** (tertinggal/hilang/rusak): di layar scan pilih mode **Manual** (ikon orang) → cari nama atau kode tamu → pilih → cocokkan identitas (KTP/undangan) → pilih alasan → centang konfirmasi identitas → **Check-in Manual**. Layar hijau **BERHASIL — MANUAL** = izinkan masuk. Tamu yang sudah masuk/dibatalkan tidak bisa dipilih. Setiap absen manual tercatat (metode, alasan, petugas) di Laporan dan Audit Log; gelang tamu itu otomatis ditolak *SUDAH CHECK-IN* bila dipakai orang lain.
+
 Scanner USB kadang membaca dua kali; sistem mengabaikan QR sama dalam 2 detik dan server tetap menjamin satu check-in per tamu.
 
 ## 4. Meja bantuan — Admin

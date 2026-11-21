@@ -37,7 +37,7 @@ const rowSelect = {
   externalCode: true,
   name: true,
   groupName: true,
-  checkIns: { select: { id: true, checkedInAt: true, gate: { select: { name: true } }, user: { select: { name: true } } }, take: 1 },
+  checkIns: { select: { id: true, checkedInAt: true, method: true, manualReason: true, gate: { select: { name: true } }, user: { select: { name: true } } }, take: 1 },
 } satisfies Prisma.GuestSelect;
 
 export type AttendanceRow = {
@@ -51,6 +51,8 @@ export type AttendanceRow = {
   time: string | null;
   gate: string | null;
   officer: string | null;
+  method: "QR" | "MANUAL" | null;
+  manualReason: string | null;
 };
 
 function toRow(g: Prisma.GuestGetPayload<{ select: typeof rowSelect }>, no: number): AttendanceRow {
@@ -66,6 +68,8 @@ function toRow(g: Prisma.GuestGetPayload<{ select: typeof rowSelect }>, no: numb
     time: c ? formatDateTime(c.checkedInAt) : null,
     gate: c?.gate.name ?? null,
     officer: c?.user.name ?? null,
+    method: c?.method ?? null,
+    manualReason: c?.manualReason ?? null,
   };
 }
 

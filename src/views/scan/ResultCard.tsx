@@ -5,6 +5,7 @@ export type ScanOutcome = {
   ok: boolean;
   result: "SUCCESS" | "UNKNOWN_QR" | "ALREADY_CHECKED_IN" | "INACTIVE" | "WRONG_EVENT" | "ERROR" | "NETWORK";
   message: string;
+  manual?: boolean; // absen manual (tanpa gelang)
   guest?: { name: string; group: string; code: string | null };
   checkIn?: { gate: string; time: string };
   previousCheckIn?: { gate: string; time: string };
@@ -105,7 +106,7 @@ export function ResultCard({
                 isDarkText ? "text-neutral-800" : "text-white/85"
               )}
             >
-              {s.action}
+              {outcome.manual && outcome.result === "SUCCESS" ? "Izinkan masuk — tercatat absen manual" : s.action}
             </div>
           </div>
         </div>

@@ -18,6 +18,8 @@ export type AttendanceItem = {
   time: string | null;
   gate: string | null;
   officer: string | null;
+  method: "QR" | "MANUAL" | null;
+  manualReason: string | null;
 };
 export type GateItem = { gate: string; active: boolean; count: number };
 export type RejectedItem = { no: number; id: number; time: string; result: string; message: string; gate: string | null; officer: string | null };
@@ -72,7 +74,14 @@ export function AttendanceTable({ rows, canCorrect }: { rows: AttendanceItem[]; 
               <TableCell>
                 <Badge variant={r.present ? "default" : "outline"}>{r.present ? "Hadir" : "Belum hadir"}</Badge>
               </TableCell>
-              <TableCell className="tabular-nums">{r.time ?? "—"}</TableCell>
+              <TableCell className="tabular-nums">
+                {r.time ?? "—"}
+                {r.method === "MANUAL" && (
+                  <Badge variant="secondary" className="ml-2" title={r.manualReason ?? undefined}>
+                    Manual
+                  </Badge>
+                )}
+              </TableCell>
               <TableCell>{r.gate ?? "—"}</TableCell>
               <TableCell>{r.officer ?? "—"}</TableCell>
               {canCorrect && (

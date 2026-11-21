@@ -37,6 +37,12 @@ enum ScanResult {
   ERROR
 }
 
+// Cara check-in: QR = scan gelang; MANUAL = dicari petugas karena tamu tidak membawa gelang.
+enum CheckInMethod {
+  QR
+  MANUAL
+}
+
 enum Orientation {
   PORTRAIT
   LANDSCAPE
@@ -172,6 +178,9 @@ model CheckIn {
   userId      Int      @map("user_id")
   checkedInAt DateTime @default(now()) @map("checked_in_at")
   isTest      Boolean  @default(false) @map("is_test")
+  method       CheckInMethod @default(QR)
+  // Wajib diisi untuk MANUAL (mis. "Gelang tertinggal").
+  manualReason String?       @map("manual_reason") @db.VarChar(255)
 
   guest Guest @relation(fields: [guestId], references: [id])
   event Event @relation(fields: [eventId], references: [id])

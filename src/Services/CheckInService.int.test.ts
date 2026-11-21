@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { issueToken } from "@/lib/qr";
-import { scan } from "./CheckInService";
+import { manualCheckIn, scan, searchGuests } from "./CheckInService";
 import { checkGateAccess } from "./GateAccessService";
 import type { UserRow } from "@/Models/User";
 
@@ -104,6 +104,54 @@ describe("scan check-in", () => {
     const dump = JSON.stringify(logs);
     for (const t of Object.values(tokens)) expect(dump).not.toContain(t.slice(4));
     expect(logs.every((l) => l.userId === officer.id && l.tokenFingerprint?.length === 16)).toBe(true);
+  });
+});
+
+describe("absen manual (tamu tanpa gelang)", () => {
+  it("cari tamu per nama/kode hanya di event gate, beserta status check-in", async () => {
+    const byName = await searchGuests(gateA.eventId, "tamu 00");
+    expect(byName.map((g) => g.code)).not.toContain("9001");
+    expect(byName.find((g) => g.code === "0001")?.checkIn).toMatchObject({ gate: "Gate A", manual: false });
+    expect((await searchGuests(gateA.eventId, "0004"))[0]).toMatchObject({ code: "0004", status: "CANCELLED" });
+    expect(await searchGuests(gateA.eventId, "x")).toEqual([]);
+  });
+
+  it("tamu belum hadir -> SUCCESS manual, method MANUAL + alasan + audit log", async () => {
+    const g = await guestWithQr(gateA.eventId, "0040");
+    const r = await manualCheckIn(g.id, gateB, officer.id, "Gelang tertinggal");
+    expect(r).toMatchObject({ ok: true, result: "SUCCESS", manual: true, guest: { code: "0040" }, checkIn: { gate: "Gate B" } });
+    const ci = await db.checkIn.findFirstOrThrow({ where: { guestId: g.id } });
+    expect(ci).toMatchObject({ method: "MANUAL", manualReason: "Gelang tertinggal", userId: officer.id, gateId: gateB.id });
+    const audit = await db.auditLog.findFirstOrThrow({ where: { action: "checkin.manual", entityId: String(ci.id) } });
+    expect(audit).toMatchObject({ userId: officer.id, reason: "Gelang tertinggal" });
+  });
+
+  it("setelah absen manual, gelang tamu itu discan -> SUDAH CHECK-IN", async () => {
+    expect(await scan(tokens["0040"], gateA, officer.id)).toMatchObject({ result: "ALREADY_CHECKED_IN", previousCheckIn: { gate: "Gate B" } });
+  });
+
+  it("tamu sudah scan QR -> manual ditolak SUDAH CHECK-IN", async () => {
+    const g = await db.guest.findFirstOrThrow({ where: { externalCode: "0001", eventId: gateA.eventId } });
+    expect(await manualCheckIn(g.id, gateB, officer.id, "Gelang hilang")).toMatchObject({ ok: false, result: "ALREADY_CHECKED_IN", previousCheckIn: { gate: "Gate A" } });
+  });
+
+  it("tamu dibatalkan & tamu event lain ditolak, tidak tercatat hadir", async () => {
+    const cancelled = await db.guest.findFirstOrThrow({ where: { externalCode: "0004" } });
+    const other = await db.guest.findFirstOrThrow({ where: { externalCode: "9001" } });
+    expect((await manualCheckIn(cancelled.id, gateA, officer.id, "Gelang hilang")).result).toBe("INACTIVE");
+    expect((await manualCheckIn(other.id, gateA, officer.id, "Gelang hilang")).result).toBe("WRONG_EVENT");
+    expect((await manualCheckIn(999999, gateA, officer.id, "Gelang hilang")).result).toBe("WRONG_EVENT");
+    expect(await db.checkIn.count({ where: { guestId: { in: [cancelled.id, other.id] } } })).toBe(0);
+  });
+
+  it("manual & scan QR bersamaan untuk tamu sama -> tepat 1 SUCCESS", async () => {
+    const g = await guestWithQr(gateA.eventId, "0041");
+    const results = await Promise.all([
+      ...Array.from({ length: 5 }, () => manualCheckIn(g.id, gateA, officer.id, "Gelang rusak")),
+      ...Array.from({ length: 5 }, () => scan(tokens["0041"], gateB, officer.id)),
+    ]);
+    expect(results.filter((r) => r.result === "SUCCESS")).toHaveLength(1);
+    expect(await db.checkIn.count({ where: { guestId: g.id } })).toBe(1);
   });
 });
 

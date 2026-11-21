@@ -6,6 +6,18 @@ export const ScanRequest = z.object({
   gateId: z.coerce.number().int().positive(),
 });
 
+export const ManualCheckInRequest = z.object({
+  guestId: z.coerce.number().int().positive(),
+  gateId: z.coerce.number().int().positive(),
+  reason: z.string().trim().min(3, "Alasan absen manual wajib diisi").max(255, "Alasan terlalu panjang"),
+  identityChecked: z.literal(true, { error: "Pastikan identitas tamu sudah dicek" }),
+});
+
+export const GuestSearchQuery = z.object({
+  gateId: z.coerce.number().int().positive(),
+  q: z.string().max(100).catch(""),
+});
+
 export const ScanLogQuery = z.object({
   result: z.enum(ScanResult).optional().catch(undefined),
   gate: z.coerce.number().int().positive().optional().catch(undefined),
