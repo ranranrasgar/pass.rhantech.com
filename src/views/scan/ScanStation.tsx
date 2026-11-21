@@ -10,11 +10,13 @@ import {
   ArrowLeftRight,
   LayoutDashboard,
   LogOut,
+  UserSearch,
 } from "lucide-react";
 import { logout } from "@/Http/Controllers/AuthController";
 import { cn } from "@/lib/utils";
 import { CameraScanner } from "./CameraScanner";
 import { UsbScanner } from "./UsbScanner";
+import { ManualCheckIn } from "./ManualCheckIn";
 import { ResultCard, type ScanOutcome } from "./ResultCard";
 import { playScanSound } from "./scanSound";
 
@@ -42,9 +44,11 @@ const savePref = (key: string, value: string) => {
 };
 
 export function ScanStation({ gate, officerName, canLeave }: Props) {
-  const [mode, setMode] = useState<"camera" | "usb">(() =>
-    pref("vp.scanMode", "camera") === "usb" ? "usb" : "camera"
-  );
+  type Mode = "camera" | "usb" | "manual";
+  const [mode, setMode] = useState<Mode>(() => {
+    const m = pref("vp.scanMode", "camera");
+    return m === "usb" || m === "manual" ? m : "camera";
+  });
   const [muted, setMuted] = useState(() => pref("vp.muted", "0") === "1");
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [busy, setBusy] = useState(false);
@@ -77,21 +81,17 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
     };
   }, []);
 
-  const submit = useCallback(
-    async (raw: string) => {
-      const token = raw.trim();
-      const now = Date.now();
-      if (!token || busy) return;
-      if (token === last.current.token && now - last.current.at < DEBOUNCE_MS) return;
-      last.current = { token, at: now };
+  // Kirim ke server & tampilkan hasil (dipakai scan QR dan absen manual).
+  const send = useCallback(
+    async (url: string, payload: Record<string, unknown>) => {
       setBusy(true);
 
       let result: ScanOutcome;
       try {
-        const res = await fetch("/api/check-in/scan", {
+        const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, gateId: gate.id }),
+          body: JSON.stringify({ ...payload, gateId: gate.id }),
           signal: AbortSignal.timeout(TIMEOUT_MS),
         });
         const json = await res.json().catch(() => null);
@@ -114,12 +114,32 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
       setBusy(false);
       if (!muted) playScanSound(result.result === "SUCCESS");
     },
-    [busy, gate.id, muted]
+    [gate.id, muted]
+  );
+
+  const submit = useCallback(
+    async (raw: string) => {
+      const token = raw.trim();
+      const now = Date.now();
+      if (!token || busy) return;
+      if (token === last.current.token && now - last.current.at < DEBOUNCE_MS) return;
+      last.current = { token, at: now };
+      await send("/api/check-in/scan", { token });
+    },
+    [busy, send]
+  );
+
+  const submitManual = useCallback(
+    async (guestId: number, reason: string) => {
+      if (busy) return;
+      await send("/api/check-in/manual", { guestId, reason, identityChecked: true });
+    },
+    [busy, send]
   );
 
   const cameraPaused = busy || outcome !== null;
 
-  function chooseMode(m: "camera" | "usb") {
+  function chooseMode(m: Mode) {
     setMode(m);
     savePref("vp.scanMode", m);
     setOutcome(null);
@@ -187,6 +207,20 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
               <Keyboard className="size-3.5" />
               <span className="hidden xs:inline">USB</span>
             </button>
+            <button
+              type="button"
+              onClick={() => chooseMode("manual")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all",
+                mode === "manual"
+                  ? "bg-primary text-neutral-950 shadow-sm"
+                  : "text-neutral-400 hover:text-white"
+              )}
+              title="Absen manual (tamu tidak membawa gelang)"
+            >
+              <UserSearch className="size-3.5" />
+              <span className="hidden xs:inline">Manual</span>
+            </button>
           </div>
 
           {/* Sound Toggle */}
@@ -249,13 +283,15 @@ export function ScanStation({ gate, officerName, canLeave }: Props) {
               onScan={submit}
               onResume={() => setOutcome(null)}
             />
-          ) : (
+          ) : mode === "usb" ? (
             <UsbScanner disabled={busy} onScan={submit} />
+          ) : (
+            <ManualCheckIn gateId={gate.id} disabled={busy} onSubmit={submitManual} />
           )}
         </div>
 
-        {/* Validating Spinner / Result Card */}
-        <div className="shrink-0">
+        {/* Validating Spinner / Result Card (mode manual: hanya saat ada hasil) */}
+        <div className={cn("shrink-0", mode === "manual" && !busy && !outcome && "hidden")}>
           {busy ? (
             <div className="flex items-center justify-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-900/90 py-5 px-4 text-center">
               <span className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />

@@ -23,6 +23,8 @@ const ATTENDANCE_COLUMNS: Column<AttendanceRow>[] = [
   { header: "Waktu hadir", width: 22, value: (r) => r.time },
   { header: "Gate", width: 14, value: (r) => r.gate },
   { header: "Petugas", width: 24, value: (r) => r.officer },
+  { header: "Metode", width: 10, value: (r) => (r.method === "MANUAL" ? "Manual" : r.method === "QR" ? "QR" : null) },
+  { header: "Alasan manual", width: 30, value: (r) => r.manualReason },
 ];
 
 type Rejected = Awaited<ReturnType<typeof rejectedScans>>["rows"][number];

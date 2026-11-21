@@ -210,3 +210,12 @@ Catatan serah terima untuk agent/developer berikutnya. Baca ini + `AGENTS.md` + 
 - Uji install PWA di ponsel butuh HTTPS (rencana F4: mkcert/SSL Laragon).
 - Rate limit login → F6.
 - Setelah `git pull` di mesin lain: `npm install` (generate client), `npx prisma migrate dev`, `npx prisma db seed`.
+
+## Tambahan — Absen manual (tamu tanpa gelang), 21 Nov 2026
+
+- Layar **Scan Gate** punya mode ke-3 **Manual**: cari tamu (nama mengandung / kode awalan, maks 20 hasil, hanya event gate) → pilih → alasan (Gelang tertinggal / hilang / rusak / lainnya) + konfirmasi identitas wajib.
+- API: `GET /api/check-in/guests?gateId=&q=` dan `POST /api/check-in/manual { guestId, gateId, reason, identityChecked: true }`. Role & akses gate sama dengan scan QR (`SCAN_ROLES` + `checkGateAccess`); petugas dari sesi.
+- Aturan sama dengan scan: tamu ACTIVE, event gate, satu check-in per tamu (unique DB — manual & QR bersamaan tetap 1 SUCCESS). Mode Uji ikut ditandai `is_test`.
+- Skema: `check_ins.method` (`QR`/`MANUAL`, default `QR`) + `check_ins.manual_reason`; migrasi `20261121104500_manual_check_in`. Tidak menulis `scan_logs` (tidak ada QR); tercatat di Audit Log `checkin.manual`.
+- Laporan: badge "Manual" di Waktu hadir; ekspor menambah kolom **Metode** & **Alasan manual**.
+- Tes: `CheckInService.int.test.ts` blok "absen manual" (cari, sukses+audit, gelang setelah manual, sudah scan, batal/event lain, paralel manual+QR).

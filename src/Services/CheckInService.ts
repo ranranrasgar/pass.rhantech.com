@@ -8,6 +8,7 @@ import { hashToken, normalizeToken } from "@/lib/qr";
 import { APP_TIMEZONE } from "@/lib/time";
 import { Prisma, type ScanResult } from "@/generated/prisma/client";
 import { ScanLog } from "@/Models/ScanLog";
+import { AuditLog } from "@/Models/AuditLog";
 
 // testMode: event sedang Mode Uji -> check-in & scan_log ditandai is_test (dihapus saat mode uji diakhiri).
 export type ScanGate = { id: number; name: string; eventId: number; testMode?: boolean };
@@ -16,6 +17,7 @@ export type ScanResponse = {
   ok: boolean;
   result: ScanResult;
   message: string;
+  manual?: boolean;
   guest?: { name: string; group: string; code: string | null };
   checkIn?: { gate: string; checkedInAt: string; time: string };
   previousCheckIn?: { gate: string; checkedInAt: string; time: string };
@@ -78,5 +80,102 @@ export async function scan(rawToken: string, gate: ScanGate, userId: number): Pr
     console.error("scan error", err instanceof Error ? err.message : err); // tanpa token
     await log("ERROR", "Kesalahan server saat validasi").catch(() => {});
     return { ok: false, result: "ERROR", message: "GAGAL MEMVALIDASI — coba lagi" };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Absen manual: tamu tidak membawa gelang. Aturan sama dengan scan QR
+// (tamu aktif, event gate, satu check-in per tamu) + alasan wajib & audit log.
+// Tidak menulis scan_logs karena tidak ada QR yang dipindai.
+
+export type GuestMatch = {
+  id: number;
+  name: string;
+  group: string;
+  code: string | null;
+  status: "ACTIVE" | "CANCELLED";
+  checkIn: { gate: string; time: string; manual: boolean } | null;
+};
+
+/** Cari tamu di event gate berdasarkan nama (mengandung) atau kode (awalan). */
+export async function searchGuests(eventId: number, q: string, take = 20): Promise<GuestMatch[]> {
+  const term = q.trim();
+  if (term.length < 2) return [];
+  const rows = await db.guest.findMany({
+    where: {
+      eventId,
+      OR: [{ name: { contains: term, mode: "insensitive" } }, { externalCode: { startsWith: term } }],
+    },
+    select: {
+      id: true,
+      name: true,
+      groupName: true,
+      externalCode: true,
+      status: true,
+      checkIns: { select: { checkedInAt: true, method: true, gate: { select: { name: true } } }, take: 1 },
+    },
+    orderBy: [{ name: "asc" }, { id: "asc" }],
+    take,
+  });
+  return rows.map((g) => {
+    const c = g.checkIns[0];
+    return {
+      id: g.id,
+      name: g.name,
+      group: g.groupName,
+      code: g.externalCode,
+      status: g.status,
+      checkIn: c ? { gate: c.gate.name, time: timeLabel(c.checkedInAt), manual: c.method === "MANUAL" } : null,
+    };
+  });
+}
+
+export async function manualCheckIn(guestId: number, gate: ScanGate, userId: number, reason: string): Promise<ScanResponse> {
+  const g = await db.guest.findUnique({
+    where: { id: guestId },
+    select: { id: true, eventId: true, name: true, groupName: true, externalCode: true, status: true },
+  });
+  if (!g || g.eventId !== gate.eventId) {
+    return { ok: false, result: "WRONG_EVENT", message: "TAMU TIDAK ADA DI EVENT INI", manual: true };
+  }
+  const guest = { name: g.name, group: g.groupName, code: g.externalCode };
+  if (g.status !== "ACTIVE") {
+    return { ok: false, result: "INACTIVE", message: "TIKET TIDAK AKTIF — Tiket tamu dibatalkan", guest, manual: true };
+  }
+
+  try {
+    const created = await db.$transaction(async (tx) => {
+      const ci = await tx.checkIn.create({
+        data: { guestId: g.id, eventId: gate.eventId, gateId: gate.id, userId, isTest: !!gate.testMode, method: "MANUAL", manualReason: reason },
+        select: { id: true, checkedInAt: true },
+      });
+      await AuditLog.record(
+        {
+          userId,
+          action: "checkin.manual",
+          entityType: "check_in",
+          entityId: ci.id,
+          after: { guestId: g.id, guestName: g.name, code: g.externalCode, gateId: gate.id, gateName: gate.name, checkedInAt: ci.checkedInAt, isTest: !!gate.testMode },
+          reason,
+        },
+        tx,
+      );
+      return ci;
+    });
+    return { ok: true, result: "SUCCESS", message: "BERHASIL — MANUAL", guest, checkIn: stamp(gate.name, created.checkedInAt), manual: true };
+  } catch (err) {
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
+    const prev = await db.checkIn.findUnique({
+      where: { guestId_eventId: { guestId: g.id, eventId: gate.eventId } },
+      select: { checkedInAt: true, gate: { select: { name: true } } },
+    });
+    return {
+      ok: false,
+      result: "ALREADY_CHECKED_IN",
+      message: "SUDAH CHECK-IN",
+      guest,
+      previousCheckIn: prev ? stamp(prev.gate.name, prev.checkedInAt) : undefined,
+      manual: true,
+    };
   }
 }
